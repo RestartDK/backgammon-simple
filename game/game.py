@@ -1,6 +1,8 @@
 from backgammonboard import BackgammonBoard
 from dice import Dice
 
+# Here initalise the pieces onto the fields on the board in init
+
 class Game:
     def __init__(self):
         self.board = BackgammonBoard()
