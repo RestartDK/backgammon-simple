@@ -1,30 +1,32 @@
 import pygame
-from game import Game
+from game.game import Game
+import os
 
-class Main:
-    def __init__(self):
-        pygame.init()
-        self.size = self.width, self.height = 640, 480
-        self.screen = pygame.display.set_mode(self.size)
-        self.game = Game()
-
-    def run(self):
-        # Main game loop
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            # Game logic
-            self.game.start()
-
-            # Render logic
-            self.screen.fill((0, 0, 0))  # Fill the screen with black (or any background)
-            pygame.display.flip()  # Update the full display
-
-        pygame.quit()
+# When opens, the window is centered
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 if __name__ == "__main__":
-    main = Main()
-    main.run()
+    # Create an instance of the Game class
+    game = Game()
+
+    # Main loop
+    running = True
+    while running:
+        # Handle events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            # Handle other events, like mouse clicks to move pieces
+            # if event.type == pygame.MOUSEBUTTONDOWN:
+            #     handle_mouse_click(event)
+
+        # Render the game
+        #screen.fill((0, 0, 0))  # Clear the screen
+        #game.render(screen)  # Render the game state
+
+        # Update the display
+        pygame.display.flip()
+
+    # Quit Pygame when the main loop ends
+    pygame.quit()
