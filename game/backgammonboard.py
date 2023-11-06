@@ -10,6 +10,8 @@ import pygame
 # Temporary variables to be put in game class for defining the game
 MAX_HEIGHT = 500
 MAX_WIDTH = 1200
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 
 class BackgammonBoard:
     def __init__(self):
@@ -53,42 +55,3 @@ class BackgammonBoard:
     def render(self, screen):
         self.render_board(screen)
         
-
-
-"""
-Testing Code for the BackgammonBoard class
-"""
-
-# Initialize Pygame
-pygame.init()
-
-# Constants for the screen dimensions
-SCREEN_WIDTH = 800  # Adjust as per your screen setup
-SCREEN_HEIGHT = 600
-
-# Create the screen object
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-# Set a title of the window
-pygame.display.set_caption('Backgammon Game')
-
-# Create a BackgammonBoard instance
-backgammon_board = BackgammonBoard()
-
-# Main loop
-running = True
-while running:
-    # Handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    
-    # Render the board
-    screen.fill((0, 0, 0))  # Fills the entire screen with black or another background color
-    backgammon_board.render(screen)
-
-    # Update the display
-    pygame.display.flip()
-
-# Quit Pygame when the main loop ends
-pygame.quit()
