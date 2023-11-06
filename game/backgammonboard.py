@@ -6,54 +6,89 @@
 # Put remove_piece() in the BackgammonBoard class
 
 import pygame
-from utilities import scale_image
-from piece import Piece
 
+# Temporary variables to be put in game class for defining the game
+MAX_HEIGHT = 500
+MAX_WIDTH = 1200
 
 class BackgammonBoard:
     def __init__(self):
-        self.fields = [[] for _ in range(24)]  # 24 points on the board
         self.generate_board()
-    
-    def add_piece(self, point, piece: Piece):
-        self.points[point].append(piece)
-
-    def remove_piece(self, point):
-        return self.points[point].pop() if self.points[point] else None
-
-    def move_piece(self, start_point, end_point):
-        pass
-        # TODO: Implement moving a piece from one point to another
     
     def generate_board(self):
         self.triangles = list()
-        self.bounding_box_width = 80
-        self.height = self.app.height - 2*self.bounding_box_width
-        self.width = self.app.width - 2*self.bounding_box_width
+        self.bounding_box_width = 25  # Adjust as per your needs, width of the edge of the board.
+        self.height = SCREEN_HEIGHT - 2 * self.bounding_box_width  # Use SCREEN_HEIGHT here
+        self.width = SCREEN_WIDTH - 2 * self.bounding_box_width  # Use SCREEN_WIDTH here
         for row_idx in range(2):
-            self.triangles.append([pygame.image.load(
-                f"assets/images/row-{color}-{row_idx+1}.svg") for color in ['black', 'white']])
-        self.v_line = pygame.image.load("assets/images/v-line.svg")
+            self.triangles.append([pygame.image.load(f"assets/images/row-{color}-{row_idx+1}.png") for color in ['black', 'white']])
+        self.v_line = pygame.image.load("assets/images/v-line.png")
         self.triangle_width = self.triangles[0][0].get_width()
         self.triangle_height = self.triangles[0][0].get_height()
-
-        self.distance_y = 100
-        self.offset_y = (self.height -
-                         self.distance_y) // 2 - self.triangle_height
-        self.offset_x = self.width - 12*self.triangle_width
+        self.distance_y = 10  # Distance between upper and lower triangles
+        self.offset_y = (self.height - 2 * self.triangle_height - self.distance_y) // 2
+        self.offset_x = self.bounding_box_width  # Start at the edge of the bounding box
 
     def render_board(self, screen):
         self.background = pygame.image.load("assets/images/background.jpg")
-        for idx in range(12):
-            x = idx*self.triangle_width + self.offset_x * (idx // 6)
-            self.surface.blit(self.triangles[0][idx % 2],
-                (x, self.offset_y))
-            self.surface.blit(self.triangles[1][idx % 2],
-                (x, self.triangle_height+self.offset_y+self.distance_y))
+        screen.blit(self.background, (0, 0))  # Cover the entire screen
 
-        screen.blit(self.background, (self.bounding_box_width,
-            self.bounding_box_width))
+        # Position the triangles on the board
+        for idx in range(12):
+            x_upper = self.offset_x + idx * self.triangle_width
+            x_lower = self.offset_x + idx * self.triangle_width
+            
+            # If past the half way mark, skip the width of the bar
+            if idx >= 6:
+                x_upper += self.v_line.get_width()
+                x_lower += self.v_line.get_width()
+            
+            screen.blit(self.triangles[0][idx % 2], (x_upper, self.offset_y))
+            screen.blit(self.triangles[1][idx % 2], (x_lower, self.offset_y + self.triangle_height + self.distance_y))
+
+        # Blit the vertical line at the center, subtracting half of its width
+        v_line_x = (SCREEN_WIDTH // 2) - (self.v_line.get_width() // 2)
+        screen.blit(self.v_line, (v_line_x, self.bounding_box_width))
 
     def render(self, screen):
         self.render_board(screen)
-        screen.blit(self.v_line, (self.app.width // 2, 0))
+        
+
+
+"""
+Testing Code for the BackgammonBoard class
+"""
+
+# Initialize Pygame
+pygame.init()
+
+# Constants for the screen dimensions
+SCREEN_WIDTH = 800  # Adjust as per your screen setup
+SCREEN_HEIGHT = 600
+
+# Create the screen object
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Set a title of the window
+pygame.display.set_caption('Backgammon Game')
+
+# Create a BackgammonBoard instance
+backgammon_board = BackgammonBoard()
+
+# Main loop
+running = True
+while running:
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    
+    # Render the board
+    screen.fill((0, 0, 0))  # Fills the entire screen with black or another background color
+    backgammon_board.render(screen)
+
+    # Update the display
+    pygame.display.flip()
+
+# Quit Pygame when the main loop ends
+pygame.quit()
