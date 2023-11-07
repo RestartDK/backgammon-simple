@@ -1,90 +1,79 @@
 import pygame
+# from utilities.scale_image import scale_image
 
-# Constants for the screen dimensions
-SCREEN_HEIGHT = 1000
-SCREEN_WIDTH = 1200
-V_LINE_WIDTH = 10
+#TODO: Remove this and use alias instead
+def scale_image(image: pygame.SurfaceType, target_width, target_height):
+    return pygame.transform.smoothscale(image, (target_width, target_height))
+
+# Screen constants adjusted to fit the screen
+SCREEN_WIDTH = 1700
+SCREEN_HEIGHT = 900
+V_LINE_WIDTH = 10  # The width of the v-line
 NUM_TRIANGLES_PER_SIDE = 12
-DISTANCE_BETWEEN_TRIANGLES = 0  # Assuming no space between triangles for calculation
-
-# Calculate the new width for triangles
-available_width_for_triangles = SCREEN_WIDTH - V_LINE_WIDTH
-triangle_new_width = available_width_for_triangles / (NUM_TRIANGLES_PER_SIDE * 2)
-
-# Adjusted bounding box width based on the new triangle width
-bounding_box_width = (
-    SCREEN_WIDTH - (triangle_new_width * NUM_TRIANGLES_PER_SIDE * 2 + V_LINE_WIDTH)
-) / 2
-
+MIDDLE_AREA_WIDTH = 100  # The width of the area in the middle behind the v-line
 
 class BackgammonBoard:
     def __init__(self):
         self.generate_board()
+        
 
     def generate_board(self):
+        # Load and scale background
+        self.background = pygame.image.load("assets/images/background.jpg")
+        self.background = pygame.transform.smoothscale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+        # Load and scale v-line
+        self.v_line = pygame.image.load("assets/images/v-line.png")
+        self.v_line = pygame.transform.smoothscale(self.v_line, (10, SCREEN_HEIGHT))
+
+        
+        # Initialize triangles list
         self.triangles = list()
-        self.bounding_box_width = bounding_box_width
-        self.height = SCREEN_HEIGHT - 2 * self.bounding_box_width
-        self.width = SCREEN_WIDTH - 2 * self.bounding_box_width
         for row_idx in range(2):
-            self.triangles.append(
-                [
-                    pygame.transform.scale(
-                        pygame.image.load(f"assets/images/row-{color}-{row_idx+1}.png"),
-                        (int(triangle_new_width), 500),
-                    )
-                    for color in ["black", "white"]
-                ]
-            )
-        self.v_line = pygame.transform.scale(
-            pygame.image.load("assets/images/v-line.png"),
-            (V_LINE_WIDTH, SCREEN_HEIGHT - 2 * self.bounding_box_width),
-        )
-        self.triangle_width = triangle_new_width
-        self.triangle_height = 500  # Since the image height remains the same
-        self.distance_y = 10  # Distance between upper and lower triangles
-        self.offset_y = self.bounding_box_width
-        self.offset_x = self.bounding_box_width  # Start at the edge of the bounding box
+            # Load triangle images
+            triangles_row = [
+                pygame.image.load(f"assets/images/row-{color}-{row_idx+1}.png")
+                for color in ["black", "white"]
+            ]
+            # Scale triangles to match the screen height while maintaining aspect ratio
+            scaled_triangles_row = [
+                pygame.transform.smoothscale(tri, (tri.get_width(), SCREEN_HEIGHT // 2))
+                for tri in triangles_row
+            ]
+            self.triangles.append(scaled_triangles_row)
+
+        # Calculate other dimensions and offsets
+        self.triangle_width = self.triangles[0][0].get_width()
+        self.triangle_height = self.triangles[0][0].get_height()
+        self.distance_y = 0  # No distance between upper and lower triangles
+        #self.offset_x = (SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()) // 2
+        # Calculate offsets
+        self.offset_x = (SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()) // 2
 
     def render_board(self, screen):
-        self.background = pygame.image.load("assets/images/background.jpg")
-        screen.blit(self.background, (0, 0))  # Cover the entire screen
+        # Blit the background
+        screen.blit(self.background, (0, 0))
 
-        # Available width calculation
-        available_width = SCREEN_WIDTH - V_LINE_WIDTH - 2 * self.offset_x
+        # Blit the triangles
+        for idx in range(12):
+            #x = idx*self.triangle_width + self.offset_x * (idx // 6) 
+            x = self.offset_x + idx * self.triangle_width
+            if idx >= 6:  # Skip the space for the v-line in the middle
+                x += self.v_line.get_width()
+            # Blit upper triangles
+            screen.blit(self.triangles[0][idx % 2], (x, 0))
+            # Blit lower triangles
+            screen.blit(self.triangles[1][idx % 2], (x, SCREEN_HEIGHT // 2))
 
-        # Calculate the space needed for 12 triangles (6 on each side of the bar)
-        total_triangle_space = available_width / 2
-
-        # Calculate the width for each triangle and the space between them
-        # Assuming we want no space between triangles, the width is simply the space divided by 6
-        self.triangle_width = total_triangle_space / 6
-
-        # Update the x position calculations
-        for idx in range(NUM_TRIANGLES_PER_SIDE):
-            x_position = self.offset_x + idx * self.triangle_width
-            if idx >= 6:  # Adjust for the vertical line if it's on the right side
-                x_position += V_LINE_WIDTH
-
-            # Blit the upper and lower triangles at the updated x positions
-            screen.blit(self.triangles[0][idx % 2], (x_position, self.offset_y))
-            screen.blit(self.triangles[1][idx % 2], (x_position, SCREEN_HEIGHT - self.offset_y - self.triangle_height))
-
-        # Blit the vertical line in the center of the board
+        # Blit the v-line
         v_line_x = self.offset_x + 6 * self.triangle_width
-        screen.blit(self.v_line, (v_line_x, self.bounding_box_width))
-
+        screen.blit(self.v_line, (v_line_x, 0))
 
     def render(self, screen):
         self.render_board(screen)
 
 
 # ... rest of your existing code to initialize and run the Pygame window ...
-
-
-"""
-Testing Code for the BackgammonBoard class
-"""
 
 # Initialize Pygame
 pygame.init()
@@ -107,9 +96,6 @@ while running:
             running = False
 
     # Render the board
-    screen.fill(
-        (0, 0, 0)
-    )  # Fills the entire screen with black or another background color
     backgammon_board.render(screen)
 
     # Update the display
