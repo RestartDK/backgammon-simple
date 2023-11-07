@@ -1,4 +1,5 @@
 import pygame
+
 # from utilities.scale_image import scale_image
 
 # Screen constants adjusted to fit the screen
@@ -11,12 +12,13 @@ MIDDLE_AREA_WIDTH = 100  # The width of the area in the middle behind the v-line
 class BackgammonBoard:
     def __init__(self):
         self.generate_board()
-        
 
     def generate_board(self):
         # Load and scale background
         self.background = pygame.image.load("assets/images/background.jpg")
-        self.background = pygame.transform.smoothscale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.background = pygame.transform.smoothscale(
+            self.background, (SCREEN_WIDTH, SCREEN_HEIGHT)
+        )
 
         # Load and scale v-line
         self.v_line = pygame.image.load("assets/images/v-line.png")
@@ -52,7 +54,7 @@ class BackgammonBoard:
 
         # Blit the triangles
         for idx in range(12):
-            #x = idx*self.triangle_width + self.offset_x * (idx // 6) 
+            # x = idx*self.triangle_width + self.offset_x * (idx // 6)
             x = self.offset_x + idx * self.triangle_width
             if idx >= 6:  # Skip the space for the v-line in the middle
                 x += self.v_line.get_width() + MIDDLE_AREA_WIDTH
