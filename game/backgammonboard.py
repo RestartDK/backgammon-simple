@@ -1,16 +1,14 @@
 import pygame
 # from utilities.scale_image import scale_image
 
-#TODO: Remove this and use alias instead
-def scale_image(image: pygame.SurfaceType, target_width, target_height):
-    return pygame.transform.smoothscale(image, (target_width, target_height))
-
 # Screen constants adjusted to fit the screen
 SCREEN_WIDTH = 1700
 SCREEN_HEIGHT = 900
 V_LINE_WIDTH = 10  # The width of the v-line
 NUM_TRIANGLES_PER_SIDE = 12
 MIDDLE_AREA_WIDTH = 100  # The width of the area in the middle behind the v-line
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
 
 class BackgammonBoard:
     def __init__(self):
@@ -71,35 +69,4 @@ class BackgammonBoard:
 
     def render(self, screen):
         self.render_board(screen)
-
-
-# ... rest of your existing code to initialize and run the Pygame window ...
-
-# Initialize Pygame
-pygame.init()
-
-# Create the screen object
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-# Set a title of the window
-pygame.display.set_caption("Backgammon Game")
-
-# Create a BackgammonBoard instance
-backgammon_board = BackgammonBoard()
-
-# Main loop
-running = True
-while running:
-    # Handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # Render the board
-    backgammon_board.render(screen)
-
-    # Update the display
-    pygame.display.flip()
-
-# Quit Pygame when the main loop ends
-pygame.quit()
+        
