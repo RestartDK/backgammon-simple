@@ -7,7 +7,8 @@ class Dice:
 
     def roll(self):
         # Return a tuple of two random integers between 1 and 6
-        return (random.randint(1, 6), random.randint(1, 6))
+        self.count= (random.randint(1, 6), random.randint(1, 6))
+        return self.count
     
     # This is a render method
     def render(self, screen, position, face_values):
@@ -21,5 +22,16 @@ class Dice:
     
     def theEyeCounter(self, eye):
         self.EyeCounter = eye 
-
-
+    
+    def SimulateRollCount(self):
+        eye = sum(eye.count)
+        
+        #in the rules of backgammon, if the numbers are the same, they double
+        if self.count[0] == self.count[1]:
+            eye = eye * 2
+    
+    def collision(self, pos) -> bool:
+        for i in pygame.rect:
+            if pygame.rect.collidepoint(pos):
+                self.SimulateRollCount
+                return True
