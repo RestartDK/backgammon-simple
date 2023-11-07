@@ -17,7 +17,6 @@ class Piece:
             pos = pygame.mouse.get_pos()
             self.rect.center = (pos[0] + self.offset[0],
                 pos[1] + self.offset[1])
-            self.send_move()
         screen.blit(self.image, self.rect)
 
     def move(self, pos, screen):
