@@ -1,30 +1,30 @@
 import pygame
+
 # from utilities.scale_image import scale_image
 
 # Screen constants adjusted to fit the screen
-SCREEN_WIDTH = 1700
-SCREEN_HEIGHT = 900
+SCREEN_WIDTH = 1800
+SCREEN_HEIGHT = 800
 V_LINE_WIDTH = 10  # The width of the v-line
 NUM_TRIANGLES_PER_SIDE = 12
 MIDDLE_AREA_WIDTH = 100  # The width of the area in the middle behind the v-line
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+
 
 class BackgammonBoard:
     def __init__(self):
         self.generate_board()
-        
 
     def generate_board(self):
         # Load and scale background
         self.background = pygame.image.load("assets/images/background.jpg")
-        self.background = pygame.transform.smoothscale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.background = pygame.transform.smoothscale(
+            self.background, (SCREEN_WIDTH, SCREEN_HEIGHT)
+        )
 
         # Load and scale v-line
         self.v_line = pygame.image.load("assets/images/v-line.png")
         self.v_line = pygame.transform.smoothscale(self.v_line, (10, SCREEN_HEIGHT))
 
-        
         # Initialize triangles list
         self.triangles = list()
         for row_idx in range(2):
@@ -44,9 +44,11 @@ class BackgammonBoard:
         self.triangle_width = self.triangles[0][0].get_width()
         self.triangle_height = self.triangles[0][0].get_height()
         self.distance_y = 0  # No distance between upper and lower triangles
-        #self.offset_x = (SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()) // 2
+        # self.offset_x = (SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()) // 2
         # Calculate offsets
-        self.offset_x = (SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()) // 2
+        self.offset_x = (
+            SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()
+        ) // 2
 
     def render_board(self, screen):
         # Blit the background
@@ -54,7 +56,7 @@ class BackgammonBoard:
 
         # Blit the triangles
         for idx in range(12):
-            #x = idx*self.triangle_width + self.offset_x * (idx // 6) 
+            # x = idx*self.triangle_width + self.offset_x * (idx // 6)
             x = self.offset_x + idx * self.triangle_width
             if idx >= 6:  # Skip the space for the v-line in the middle
                 x += self.v_line.get_width()
@@ -69,4 +71,3 @@ class BackgammonBoard:
 
     def render(self, screen):
         self.render_board(screen)
-        
