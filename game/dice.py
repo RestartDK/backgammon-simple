@@ -14,6 +14,7 @@ class Dice:
         screen.blit(self.faces[face_values[0] - 1], position)
         screen.blit(self.faces[face_values[1] - 1], (position[0] + self.faces[0].get_width(), position[1]))
     
+    # This is a reset method
     def reset(self):
         #resets the counter for the eyes on the dice so that both become zero
         self.EyeCounter = [0] * 2
