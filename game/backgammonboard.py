@@ -67,32 +67,3 @@ class BackgammonBoard:
 
     def render(self, screen):
         self.render_board(screen)
-        
-# Initialize Pygame
-pygame.init()
-
-# Create the screen object
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-# Set a title of the window
-pygame.display.set_caption("Backgammon Game")
-
-# Create a BackgammonBoard instance
-backgammon_board = BackgammonBoard()
-
-# Main loop
-running = True
-while running:
-    # Handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # Render the board
-    backgammon_board.render(screen)
-
-    # Update the display
-    pygame.display.flip()
-
-# Quit Pygame when the main loop ends
-pygame.quit()
