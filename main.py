@@ -13,6 +13,7 @@ if __name__ == "__main__":
     running = True
     while running:
         # Handle events
+        game.check_eaten()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False

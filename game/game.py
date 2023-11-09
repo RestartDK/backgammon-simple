@@ -9,7 +9,10 @@ class Game:
         self.board = BackgammonBoard()
         self.dice = Dice()
         # Add more initializations (players, turn count, etc.)
-    
+
+        self.stacks = {i: [] for i in range(1, 29)} # 1-24 are the points, 25-26 are when they are eaten, 27-28 are when they are extracted from the board (for black and white respectively)
+        self.initialise_pieces()   
+
     def initalise_pieces(self):
         # Define the starting position of all the pieces on the board
         # Backgammon has specific starting positions for the pieces.
@@ -37,3 +40,19 @@ class Game:
 
     def remove_piece(self, point):
         return self.points[point].pop() if self.points[point] else None
+    
+    def check_eaten(self):
+        """
+        Check if any pieces have been eaten and handle it.
+        """
+        for piece in self.pieces:
+            if self.is_eaten(piece):
+                piece.eaten(self.screen_width, self.screen_height)
+
+    def is_eaten(self, piece):
+            """
+            Check if a piece has been eaten.
+
+            This is just a placeholder. You'll need to replace this with your own logic.
+            """
+            return False  # Replace with your own logic

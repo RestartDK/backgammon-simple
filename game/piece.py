@@ -1,8 +1,10 @@
 import pygame
 import math
+import game.backgammonboard as brd
 class Piece:
     def __init__(self, ident, pos=(0, 0), black=True):
         self.dragging = False
+        self.eaten= False
         self.ident = ident
         self.black = black
         self.color = 'black' if self.black else 'white'
@@ -32,6 +34,18 @@ class Piece:
             + (self.rect.center[1] - pos[1])**2
         )
         return d <= self.image.get_width()/2
+    
+    def eaten(self):
+        """
+        Handle this piece being eaten.
+        """
+
+        self.eaten = True
+
+        if self.black:
+            self.rect.center = (brd.SCREEN_WIDTH // 2, brd.SCREEN_HEIGHT - self.image.get_height() // 2)
+        else:
+            self.rect.center = (brd.SCREEN_WIDTH  // 2, brd.SCREEN_HEIGHT - 3 * self.image.get_height() // 2)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
@@ -49,3 +63,43 @@ class Piece:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             return True
         return False
+    
+
+# Initialize Pygame
+pygame.init()
+
+# Set up some constants
+WIDTH, HEIGHT = 800, 600
+FPS = 60
+
+# Create the screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+# Create a piece
+piece = Piece(ident="piece1", pos=(WIDTH // 2, HEIGHT // 2), black=True)
+
+# Game loop
+running = True
+while running:
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type in {pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION}:
+            piece.handle_event(event)
+
+    # Update
+    piece.update(screen)
+
+    # Draw
+    screen.fill((255, 255, 255))  # Fill the screen with white
+    piece.update(screen)  # Draw the piece
+
+    # Flip the display
+    pygame.display.flip()
+
+    # Cap the frame rate
+    pygame.time.Clock().tick(FPS)
+
+# Quit Pygame
+pygame.quit()
