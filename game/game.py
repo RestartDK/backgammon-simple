@@ -18,28 +18,27 @@ class Game:
         self.initalise_pieces()
 
     def initalise_pieces(self):
-        # Define the starting position of all the pieces on the board
-        self.piece_positions = {
-            # Points are listed for the white player. For black, the points are mirrored.
-            1: [Piece("white") for _ in range(2)],  # white's 24-point
-            6: [Piece("black") for _ in range(5)],  # black's 19-point
-            8: [Piece("black") for _ in range(3)],  # black's 17-point
-            12: [Piece("white") for _ in range(5)],  # white's 13-point
-            13: [Piece("black") for _ in range(5)],  # black's 12-point
-            17: [Piece("white") for _ in range(3)],  # white's 8-point
-            19: [Piece("white") for _ in range(5)],  # white's 6-point
-            24: [Piece("black") for _ in range(2)],  # black's 1-point
-        }
+        # Remember in python lists start with 0 but backgammon board has 24 places
+        self.piece_positions = [[] for _ in range(24)]
+        self.piece_positions[0] = [Piece("black", self.screen) for _ in range(2)]
+        self.piece_positions[5] = [Piece("white", self.screen) for _ in range(5)]
+        self.piece_positions[7] = [Piece("white", self.screen) for _ in range(3)]
+        self.piece_positions[11] = [Piece("black", self.screen) for _ in range(5)]
+        self.piece_positions[23] = [Piece("white", self.screen) for _ in range(2)]
+        self.piece_positions[18] = [Piece("black", self.screen) for _ in range(5)]
+        self.piece_positions[16] = [Piece("black", self.screen) for _ in range(3)]
+        self.piece_positions[12] = [Piece("white", self.screen) for _ in range(5)]
+
 
         # Calculate positions for each piece
         self.positions = {}
-        for point, pieces in self.piece_positions.items():
-            self.positions[point] = []
+        for point, pieces in enumerate(self.piece_positions):
+            top = point // 12 == 1
+            relative_point = point % 12
             for i, piece in enumerate(pieces):
                 # Calculate x position based on the point
-                x_position = (
-                    self.board.offset_x + ((point - 1) % 12) * self.board.triangle_width
-                )
+                offset_x = self.board.bounding_box_width + self.board.triangle_width//2 + self.board.triangle_width * relative_point + (relative_point // 6) * self.board.offset_x
+                x = offset_x if top else self.width - offset_x                          #TODO: Write this in a different wat don't understand it
                 if point > 12:  # Adjust for points on the left side of the board
                     x_position += (
                         self.board.middle_area_width + self.board.v_line.get_width()
@@ -47,6 +46,7 @@ class Game:
 
                 # Calculate y position based on the index of the piece in the stack
                 y_position = (self.board.triangle_height // len(pieces)) * i
+                """
                 if point <= 12:  # Pieces on the bottom side
                     y_position += self.screen.get_height() - self.board.triangle_height
                 # Adjust y_position to start from the top of the triangle
@@ -55,12 +55,11 @@ class Game:
                     if point <= 12
                     else 0
                 )
+                """
 
                 # Update piece's position
                 piece.move((x_position, y_position), self.screen)
                 self.add_piece(point, piece)
-
-        return self.positions
 
     def add_piece(self, point, piece: Piece):
         self.positions[point].append(piece)
@@ -69,21 +68,21 @@ class Game:
         return self.points[point].pop() if self.points[point] else None
 
     def start(self):
-        pygame.init()  # This initializes all the pygame modules
-        # Main loop
+        # Initializes all the pygame modules
+        pygame.init() 
+
         while self.running:
-            # Handle events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
 
             # Render the board and pieces
-            self.board.render()  # Call the render method of BackgammonBoard
+            self.board.render()
 
             # You should also render the pieces here
             for point, pieces in self.positions.items():
                 for piece in pieces:
-                    piece.update(self.screen)  # Call the update method of each Piece
+                    piece.render(self.screen)
 
             pygame.display.flip()
 

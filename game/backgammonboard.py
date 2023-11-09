@@ -1,7 +1,5 @@
 import pygame
 
-# from utilities.scale_image import scale_image
-
 NUM_TRIANGLES_PER_SIDE = 12
 MIDDLE_AREA_WIDTH = 100  # The width of the area in the middle behind the v-line
 
