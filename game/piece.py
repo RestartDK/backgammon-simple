@@ -1,16 +1,24 @@
 import pygame
 import math
 class Piece:
-    def __init__(self, ident, pos=(0, 0), black=True):
+    def __init__(self, colour, screen:pygame.Surface, pos=(0, 0)):
+        self.screen = screen
         self.dragging = False
-        self.ident = ident
-        self.black = black
-        self.color = 'black' if self.black else 'white'
-        self.image = pygame.image.load(
-            f"assets/images/{self.color}-piece.png")
+        self.colour = colour
+        self.generate_piece()
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.offset = (0, 0)
+        
+    # Can add scaling properties here
+    def generate_piece(self):
+        self.image = pygame.image.load(
+            f"assets/images/{self.colour}-piece.png")
+        #self.image = pygame.transform.smoothscale(
+        #    self.image, (self.image.get_width()//2, self.image.get_height()//2))
+        
+    def render(self, screen):
+        screen.blit(self.image, self.rect)
 
     def update(self, screen):
         if self.dragging:
