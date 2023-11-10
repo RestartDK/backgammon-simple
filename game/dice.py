@@ -65,26 +65,3 @@ class Dice:
             if self.rects[i].collidepoint(pos):
                 return True
         return False
-
-# Example usage
-"""
-pygame.init()
-screen = pygame.display.set_mode((800, 600))
-dice = Dice()
-dice_position = (100, 100)  # Position where the dice will be rendered
-
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if dice.collision(event.pos):
-                dice.roll()
-
-    dice.update()
-    screen.fill((0, 0, 0))  # Clear the screen
-    dice.render(screen, dice_position)  # Render the dice
-    pygame.display.flip()  # Update the display
-
-pygame.quit()"""
