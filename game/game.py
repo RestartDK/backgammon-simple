@@ -17,14 +17,14 @@ class Game:
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
         self.points = [[] for _ in range(24)]
-        self.points[0] = [Piece("black", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(2)]
-        self.points[5] = [Piece("white", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(5)]
-        self.points[7] = [Piece("white", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(3)]
-        self.points[11] = [Piece("black", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(5)]
-        self.points[23] = [Piece("white", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(2)]
-        self.points[18] = [Piece("black", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(5)]
-        self.points[16] = [Piece("black", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(3)]
-        self.points[12] = [Piece("white", self.screen, self.board.triangle_width, self.board.triangle_height) for _ in range(5)]
+        self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
+        self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
+        self.points[11] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[23] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
+        self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
+        self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
 
 
         # Calculate positions for each piece
@@ -32,16 +32,16 @@ class Game:
         # All duplicate width/height add/sub are used due to weird nature of images in pygame
         for point_id, stack in enumerate(self.points):
             # The original blit point for the surface of the piece image is centered in the middle top
-            x_base = self.board.box_width - (point_id+1)*self.board.triangle_width + self.board.triangle_width//2
+            x_base = self.board.box_width - (point_id+1)*self.board.point_width + self.board.point_width//2
             
             # Adjust x for the right side of the board
             # Adjust logic here
             if 5 < point_id and point_id < 12:
                 x_base -= self.board.middle_area_width
             elif 12 <= point_id and point_id < 17:
-                x_base = self.board.triangle_width*(point_id+2) - self.board.box_width
+                x_base = self.board.point_width*(point_id+2) - self.board.box_width
             elif point_id > 16:
-                x_base = self.board.triangle_width*(point_id+2) - self.board.box_width
+                x_base = self.board.point_width*(point_id+2) - self.board.box_width
                 x_base += self.board.middle_area_width
             
             for piece_id, piece in enumerate(stack):
