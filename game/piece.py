@@ -1,18 +1,28 @@
 import pygame
 import math
-import game.backgammonboard as brd
+from game.backgammonboard import BackgammonBoard
+
 class Piece:
-    def __init__(self, ident, pos=(0, 0), black=True):
-        self.dragging = False
-        self.eaten= False
-        self.ident = ident
-        self.black = black
-        self.color = 'black' if self.black else 'white'
-        self.image = pygame.image.load(
-            f"assets/images/{self.color}-piece.png")
+    def __init__(self, colour: str, screen:pygame.Surface, triangle_width: int, triangle_height: int, pos=(0, 0)):
+        self.screen = screen
+        self.dragging = False,
+        self.colour = colour
+        self.triangle_width = triangle_width
+        self.triangle_height = triangle_height
+        self.generate_piece()
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.offset = (0, 0)
+    
+    # Generate and scale image pieces
+    def generate_piece(self):
+        self.image = pygame.image.load(
+            f"assets/images/{self.colour}-piece.png")
+        self.image = pygame.transform.smoothscale(
+            self.image, (self.triangle_width, self.triangle_height//5))
+        
+    def render(self, screen):
+        screen.blit(self.image, self.rect)
 
     def update(self, screen):
         if self.dragging:
@@ -43,9 +53,9 @@ class Piece:
         self.eaten = True
 
         if self.black:
-            self.rect.center = (brd.SCREEN_WIDTH // 2, brd.SCREEN_HEIGHT - self.image.get_height() // 2)
+            self.rect.center = (self.screen.get_width() // 2, self.screen.get_height() - self.image.get_height() // 2)
         else:
-            self.rect.center = (brd.SCREEN_WIDTH  // 2, brd.SCREEN_HEIGHT - 3 * self.image.get_height() // 2)
+            self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
@@ -63,4 +73,3 @@ class Piece:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             return True
         return False
-    
