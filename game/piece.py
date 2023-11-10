@@ -44,6 +44,18 @@ class Piece:
             + (self.rect.center[1] - pos[1])**2
         )
         return d <= self.image.get_width()/2
+    
+    def eaten(self):
+        """
+        Handle this piece being eaten.
+        """
+
+        self.eaten = True
+
+        if self.black:
+            self.rect.center = (self.screen.get_width() // 2, self.screen.get_height() - self.image.get_height() // 2)
+        else:
+            self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
