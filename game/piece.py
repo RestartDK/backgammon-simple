@@ -14,6 +14,8 @@ class Piece:
     def generate_piece(self):
         self.image = pygame.image.load(
             f"assets/images/{self.colour}-piece.png")
+        #self.image = pygame.transform.smoothscale(
+        #    self.image, (self.image.get_width()//2, self.image.get_height()//2))
         
     def render(self, screen):
         screen.blit(self.image, self.rect)

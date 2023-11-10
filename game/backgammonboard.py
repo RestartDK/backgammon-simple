@@ -1,9 +1,5 @@
 import pygame
 
-NUM_TRIANGLES_PER_SIDE = 12
-MIDDLE_AREA_WIDTH = 100  # The width of the area in the middle behind the v-line
-
-
 class BackgammonBoard:
     def __init__(self, screen: pygame.Surface):
         self.screen = screen
@@ -12,16 +8,26 @@ class BackgammonBoard:
         self.generate_board()
 
     def generate_board(self):
+        # Define dimensions of the whole board (Same as screen dimensions)
+        self.width = self.screen.get_width()
+        self.height = self.screen.get_height()
+        
+        # Using proportions of the screen to calculate the dimensions of the board
+        self.box_width = self.screen.get_width() * 0.88
+        self.side_width = self.screen.get_width() - self.box_width
+        self.middle_area_width = self.box_width * 0.1
+        self.v_line_width = self.middle_area_width * 0.05
+        
         # Load and scale background
-        self.background = pygame.image.load("assets/images/background.jpg")
+        self.background = pygame.image.load("assets/images/background.png").convert()
         self.background = pygame.transform.smoothscale(
             self.background, (self.screen.get_width(), self.screen.get_height())
         )
 
         # Load and scale v-line
-        self.v_line = pygame.image.load("assets/images/v-line.png")
+        self.v_line = pygame.image.load("assets/images/v-line.png").convert()
         self.v_line = pygame.transform.smoothscale(
-            self.v_line, (5, self.screen.get_height())
+            self.v_line, (self.v_line_width, self.screen.get_height())
         )
 
         # Initialize triangles list
@@ -29,14 +35,14 @@ class BackgammonBoard:
         for row_idx in range(2):
             # Load triangle images
             triangles_row = [
-                pygame.image.load(f"assets/images/row-{color}-{row_idx+1}.png")
+                pygame.image.load(f"assets/images/row-{color}-{row_idx+1}.png").convert()
                 for color in ["black", "white"]
             ]
             # Scale triangles to match the screen height while maintaining aspect ratio
             scaled_triangles_row = [
                 pygame.transform.smoothscale(
                     tri,
-                    (self.screen.get_width() // 13, self.screen.get_height() // 2),
+                    ((self.box_width-self.middle_area_width) // self.num_triangles_per_side, self.screen.get_height() // 2),
                 )
                 for tri in triangles_row
             ]
@@ -45,15 +51,9 @@ class BackgammonBoard:
         # Calculate other dimensions and offsets
         self.triangle_width = self.triangles[0][0].get_width()
         self.triangle_height = self.triangles[0][0].get_height()
-        self.distance_y = 10  # No distance between upper and lower triangles
-        # Calculate offsets
-        # self.offset_x = (SCREEN_WIDTH - 12 * self.triangle_width - self.v_line.get_width()) // 2 - 50
-        self.offset_x = (
-            self.screen.get_width()
-            - 12 * self.triangle_width
-            - self.middle_area_width
-            - self.v_line.get_width()
-        ) // 2
+
+        # Placing the assets using offsets
+        self.offset_x = self.width - self.num_triangles_per_side*self.triangle_width
 
     def render(self):
         # Blit the background
@@ -61,15 +61,16 @@ class BackgammonBoard:
 
         # Blit the triangles
         for idx in range(12):
-            # x = idx*self.triangle_width + self.offset_x * (idx // 6)
-            x = self.offset_x + idx * self.triangle_width
-            if idx >= 6:  # Skip the space for the v-line in the middle
-                x += self.v_line.get_width() + self.middle_area_width
+
+            x = idx*self.triangle_width + self.offset_x - self.middle_area_width - self.side_width
+            if idx >= 6:
+                x += self.middle_area_width
+
             # Blit upper triangles
             self.screen.blit(self.triangles[0][idx % 2], (x, 0))
             # Blit lower triangles
             self.screen.blit(self.triangles[1][idx % 2], (x, self.screen.get_height() // 2))
 
         # Blit the v-line
-        v_line_x = self.offset_x + 6 * self.triangle_width + self.middle_area_width / 2
+        v_line_x = self.box_width // 2
         self.screen.blit(self.v_line, (v_line_x, 0))

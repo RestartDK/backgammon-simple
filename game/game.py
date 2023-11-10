@@ -19,50 +19,41 @@ class Game:
 
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
-        self.piece_positions = [[] for _ in range(24)]
-        self.piece_positions[0] = [Piece("black", self.screen) for _ in range(2)]
-        self.piece_positions[5] = [Piece("white", self.screen) for _ in range(5)]
-        self.piece_positions[7] = [Piece("white", self.screen) for _ in range(3)]
-        self.piece_positions[11] = [Piece("black", self.screen) for _ in range(5)]
-        self.piece_positions[23] = [Piece("white", self.screen) for _ in range(2)]
-        self.piece_positions[18] = [Piece("black", self.screen) for _ in range(5)]
-        self.piece_positions[16] = [Piece("black", self.screen) for _ in range(3)]
-        self.piece_positions[12] = [Piece("white", self.screen) for _ in range(5)]
+        self.points = [[] for _ in range(24)]
+        self.points[0] = [Piece("black", self.screen) for _ in range(2)]
+        #self.points[5] = [Piece("white", self.screen) for _ in range(5)]
+        #self.points[7] = [Piece("white", self.screen) for _ in range(3)]
+        #self.points[11] = [Piece("black", self.screen) for _ in range(5)]
+        #self.points[23] = [Piece("white", self.screen) for _ in range(2)]
+        #self.points[18] = [Piece("black", self.screen) for _ in range(5)]
+        #self.points[16] = [Piece("black", self.screen) for _ in range(3)]
+        #-self.points[12] = [Piece("white", self.screen) for _ in range(5)]
 
 
         # Calculate positions for each piece
-        self.positions = {}
-        for point, pieces in enumerate(self.piece_positions):
-            top = point // 12 == 1
-            relative_point = point % 12
-            for i, piece in enumerate(pieces):
-                # Calculate x position based on the point
-                offset_x = self.board.bounding_box_width + self.board.triangle_width//2 + self.board.triangle_width * relative_point + (relative_point // 6) * self.board.offset_x
-                x = offset_x if top else self.width - offset_x                          #TODO: Write this in a different wat don't understand it
-                if point > 12:  # Adjust for points on the left side of the board
-                    x_position += (
-                        self.board.middle_area_width + self.board.v_line.get_width()
-                    )
-
-                # Calculate y position based on the index of the piece in the stack
-                y_position = (self.board.triangle_height // len(pieces)) * i
-                """
-                if point <= 12:  # Pieces on the bottom side
-                    y_position += self.screen.get_height() - self.board.triangle_height
-                # Adjust y_position to start from the top of the triangle
-                y_position += (
-                    (self.screen.get_height() // 2 - self.board.triangle_height)
-                    if point <= 12
-                    else 0
-                )
-                """
+        self.positions = list()
+        # Correct the logic to place the pieces according to the corrected layout
+        for point_id, stack in enumerate(self.points):
+            # Calculate x based on point_id, adjusting for the middle bar
+            # x_base = self.board.side_width + self.board.offset_x
+            x_base = self.board.box_width - self.board.triangle_width * (point_id + 1)
+            
+            #if point_id >= 6:  # Adjust x for the right side of the board
+            #   x_base += self.board.middle_area_width
+            
+            for piece_id, piece in enumerate(stack):
+                # Calculate y position based on the stack index
+                if point_id < 12:  # Bottom half
+                    y = self.board.height - (piece_id + 1) * piece.image.get_height()
+                else:  # Top half
+                    y = piece_id * piece.image.get_height()
 
                 # Update piece's position
-                piece.move((x_position, y_position), self.screen)
-                self.add_piece(point, piece)
+                piece.move((x_base, y), self.screen)
+                self.add_piece(piece)
 
-    def add_piece(self, point, piece: Piece):
-        self.positions[point].append(piece)
+    def add_piece(self, piece: Piece):
+        self.positions.append(piece)
 
     def remove_piece(self, point):
         return self.points[point].pop() if self.points[point] else None
@@ -80,9 +71,8 @@ class Game:
             self.board.render()
 
             # You should also render the pieces here
-            for point, pieces in self.positions.items():
-                for piece in pieces:
-                    piece.render(self.screen)
+            for piece in self.positions:
+                piece.render(self.screen)
 
             pygame.display.flip()
 
