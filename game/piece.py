@@ -5,7 +5,8 @@ from game.backgammonboard import BackgammonBoard
 class Piece:
     def __init__(self, colour: str, screen:pygame.Surface, triangle_width: int, triangle_height: int, pos=(0, 0)):
         self.screen = screen
-        self.dragging = False,
+        self.eaten = False
+        self.dragging = False
         self.colour = colour
         self.triangle_width = triangle_width
         self.triangle_height = triangle_height
@@ -45,11 +46,8 @@ class Piece:
         )
         return d <= self.image.get_width()/2
     
+    # Handle piece being eaten
     def eaten(self):
-        """
-        Handle this piece being eaten.
-        """
-
         self.eaten = True
 
         if self.black:
@@ -59,8 +57,7 @@ class Piece:
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
-            self.offset = (self.rect.center[0] - event.pos[0],
-                self.rect.center[1] - event.pos[1])
+            self.offset = (self.rect.center[0] - event.pos[0], self.rect.center[1] - event.pos[1])
             self.dragging = True
             return True
         if self.dragging and event.type == pygame.MOUSEBUTTONUP and event.button == 1:

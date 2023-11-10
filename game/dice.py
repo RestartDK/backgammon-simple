@@ -1,17 +1,15 @@
 import random
 import pygame
 
-
-
 class Dice:
-    def __init__(self):
+    def __init__(self, screen: pygame.Surface):
         # Load images for the dice faces
+        self.screen = screen
         self.faces = [pygame.image.load(f"assets/images/dice-{i}.png") for i in range(1, 7)]
         self.rolling = False
         self.roll_start_time = None
         self.current_face_values = [1, 1, 1, 1]  # Default dice face values
         self.show_dice = 2  
-        
         self.rects = [self.faces[0].get_rect() for _ in range(4)]
 
 
@@ -49,7 +47,7 @@ class Dice:
         else:
             self.show_dice = 2
 
-    def render(self, screen, position):
+    def render(self, position: tuple):
         # Render the current dice face values and update rects
         for i in range(self.show_dice):
             
@@ -57,7 +55,7 @@ class Dice:
             
             self.rects[i].topleft = die_position
             
-            screen.blit(self.faces[self.current_face_values[i] - 1], die_position)
+            self.screen.blit(self.faces[self.current_face_values[i] - 1], die_position)
 
     def collision(self, pos) -> bool:
         # Check if the position collides with any of the shown dice
@@ -65,3 +63,14 @@ class Dice:
             if self.rects[i].collidepoint(pos):
                 return True
         return False
+    
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            for rect in self.rects:
+                if rect.collidepoint(event.pos):
+                    self.roll()
+                    return True
+        return False
+
+    def get_dice_values(self):
+        return self.current_face_values

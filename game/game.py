@@ -11,7 +11,7 @@ class Game:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.running = True
         self.board = BackgammonBoard(self.screen)
-        self.dice = Dice()
+        self.dice = Dice(self.screen)
         self.initalise_pieces()
 
     def initalise_pieces(self):
@@ -69,12 +69,26 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-
+                
+                # Handling events for each piece
+                for piece in self.positions:
+                    if piece.handle_event(event):
+                        break
+                # Handle dice events
+                if self.dice.handle_event(event):
+                    break
+            
+            # Test code
+            print(self.dice.get_dice_values())
+            
             # Render the board and pieces
             self.board.render()
+            self.dice.render((self.board.box_width//2 - self.board.middle_area_width - self.board.side_width + self.dice.faces[0].get_width()*2, self.board.height//2 - self.dice.faces[0].get_height()//2))
+            self.dice.update()
 
-            # You should also render the pieces here
+            # Update and render each piece
             for piece in self.positions:
+                piece.update(self.screen)
                 piece.render(self.screen)
 
             pygame.display.flip()
