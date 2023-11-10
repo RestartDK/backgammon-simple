@@ -3,15 +3,12 @@ from game.dice import Dice
 from game.piece import Piece
 import pygame
 
-# Screen Constants
-SCREEN_WIDTH = 1525  # 1700
-SCREEN_HEIGHT = 900  # 900
-
-
 class Game:
     def __init__(self):
         # Initialise screen for board
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen_width = 1525
+        self.screen_height = 900
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.running = True
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice()
@@ -42,25 +39,17 @@ class Game:
             if 5 < point_id and point_id < 12:
                 x_base -= self.board.middle_area_width
             elif 12 <= point_id and point_id < 17:
-                #x_base = (point_id+1)*self.board.triangle_width + self.board.triangle_width - self.board.box_width
                 x_base = self.board.triangle_width*(point_id+2) - self.board.box_width
             elif point_id > 16:
                 x_base = self.board.triangle_width*(point_id+2) - self.board.box_width
                 x_base += self.board.middle_area_width
             
             for piece_id, piece in enumerate(stack):
-                # Render the actual piece image here
                 # Calculate y position based on the stack index
                 y = (piece_id + 1) * piece.image.get_height() - piece.image.get_height()//2
                 
                 if point_id >= 12:
                     y = self.board.height - (piece_id + 1) * piece.image.get_height() + piece.image.get_height()//2
-                """
-                if point_id < 12:  # Bottom half
-                    y = self.board.height//2 - (piece_id + 1) * piece.image.get_height()
-                else:  # Top half
-                    y = piece_id * piece.image.get_height()
-                """
 
                 # Update piece's position
                 piece.move((x_base, y), self.screen)

@@ -13,7 +13,8 @@ class Piece:
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.offset = (0, 0)
-        
+    
+    # Generate and scale image pieces
     def generate_piece(self):
         self.image = pygame.image.load(
             f"assets/images/{self.colour}-piece.png")
