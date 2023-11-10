@@ -3,15 +3,12 @@ from game.dice import Dice
 from game.piece import Piece
 import pygame
 
-# Screen Constants
-SCREEN_WIDTH = 1525  # 1700
-SCREEN_HEIGHT = 900  # 900
-
-
 class Game:
     def __init__(self):
         # Initialise screen for board
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen_width = 1525
+        self.screen_height = 900
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.running = True
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice()
@@ -20,33 +17,39 @@ class Game:
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
         self.points = [[] for _ in range(24)]
-        self.points[0] = [Piece("black", self.screen) for _ in range(2)]
-        #self.points[5] = [Piece("white", self.screen) for _ in range(5)]
-        #self.points[7] = [Piece("white", self.screen) for _ in range(3)]
-        #self.points[11] = [Piece("black", self.screen) for _ in range(5)]
-        #self.points[23] = [Piece("white", self.screen) for _ in range(2)]
-        #self.points[18] = [Piece("black", self.screen) for _ in range(5)]
-        #self.points[16] = [Piece("black", self.screen) for _ in range(3)]
-        #-self.points[12] = [Piece("white", self.screen) for _ in range(5)]
+        self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
+        self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
+        self.points[11] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[23] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
+        self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
+        self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
 
 
         # Calculate positions for each piece
         self.positions = list()
-        # Correct the logic to place the pieces according to the corrected layout
+        # All duplicate width/height add/sub are used due to weird nature of images in pygame
         for point_id, stack in enumerate(self.points):
-            # Calculate x based on point_id, adjusting for the middle bar
-            # x_base = self.board.side_width + self.board.offset_x
-            x_base = self.board.box_width - self.board.triangle_width * (point_id + 1)
+            # The original blit point for the surface of the piece image is centered in the middle top
+            x_base = self.board.box_width - (point_id+1)*self.board.point_width + self.board.point_width//2
             
-            #if point_id >= 6:  # Adjust x for the right side of the board
-            #   x_base += self.board.middle_area_width
+            # Adjust x for the right side of the board
+            # Adjust logic here
+            if 5 < point_id and point_id < 12:
+                x_base -= self.board.middle_area_width
+            elif 12 <= point_id and point_id < 17:
+                x_base = self.board.point_width*(point_id+2) - self.board.box_width
+            elif point_id > 16:
+                x_base = self.board.point_width*(point_id+2) - self.board.box_width
+                x_base += self.board.middle_area_width
             
             for piece_id, piece in enumerate(stack):
                 # Calculate y position based on the stack index
-                if point_id < 12:  # Bottom half
-                    y = self.board.height - (piece_id + 1) * piece.image.get_height()
-                else:  # Top half
-                    y = piece_id * piece.image.get_height()
+                y = (piece_id + 1) * piece.image.get_height() - piece.image.get_height()//2
+                
+                if point_id >= 12:
+                    y = self.board.height - (piece_id + 1) * piece.image.get_height() + piece.image.get_height()//2
 
                 # Update piece's position
                 piece.move((x_base, y), self.screen)

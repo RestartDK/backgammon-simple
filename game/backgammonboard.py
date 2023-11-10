@@ -49,11 +49,14 @@ class BackgammonBoard:
             self.triangles.append(scaled_triangles_row)
 
         # Calculate other dimensions and offsets
-        self.triangle_width = self.triangles[0][0].get_width()
-        self.triangle_height = self.triangles[0][0].get_height()
+        self.point_width = self.triangles[0][0].get_width()
+        self.point_height = self.triangles[0][0].get_height()
+        
+        # Original image has a empty space, this counts only triangle part of the image
+        self.triangle_height = self.point_height * 0.95
 
         # Placing the assets using offsets
-        self.offset_x = self.width - self.num_triangles_per_side*self.triangle_width
+        self.offset_x = self.width - self.num_triangles_per_side*self.point_width
 
     def render(self):
         # Blit the background
@@ -62,7 +65,7 @@ class BackgammonBoard:
         # Blit the triangles
         for idx in range(12):
 
-            x = idx*self.triangle_width + self.offset_x - self.middle_area_width - self.side_width
+            x = idx*self.point_width + self.offset_x - self.middle_area_width - self.side_width
             if idx >= 6:
                 x += self.middle_area_width
 
