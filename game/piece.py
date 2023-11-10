@@ -1,21 +1,24 @@
 import pygame
 import math
+from game.backgammonboard import BackgammonBoard
+
 class Piece:
-    def __init__(self, colour, screen:pygame.Surface, pos=(0, 0)):
+    def __init__(self, colour: str, screen:pygame.Surface, triangle_width: int, triangle_height: int, pos=(0, 0)):
         self.screen = screen
-        self.dragging = False
+        self.dragging = False,
         self.colour = colour
+        self.triangle_width = triangle_width
+        self.triangle_height = triangle_height
         self.generate_piece()
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.offset = (0, 0)
         
-    # Can add scaling properties here
     def generate_piece(self):
         self.image = pygame.image.load(
             f"assets/images/{self.colour}-piece.png")
-        #self.image = pygame.transform.smoothscale(
-        #    self.image, (self.image.get_width()//2, self.image.get_height()//2))
+        self.image = pygame.transform.smoothscale(
+            self.image, (self.triangle_width, self.triangle_height//5))
         
     def render(self, screen):
         screen.blit(self.image, self.rect)
