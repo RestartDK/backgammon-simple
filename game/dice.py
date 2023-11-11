@@ -1,8 +1,6 @@
 import random
 import pygame
 
-
-
 class Dice:
     def __init__(self, screen: pygame.Surface):
         # Load images for the dice faces
