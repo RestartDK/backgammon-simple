@@ -38,28 +38,7 @@ class App:
                 # Update piece's position
                 piece.move((x_base, y_base), self.screen)
                 self.add_piece(piece)
-        
-    def calculate_piece_position(self, point_id, stack_height):
-        # The original blit point for the surface of the piece image is centered in the middle top
-        x_base = self.board.box_width - (point_id + 1) * self.board.point_width + self.board.point_width // 2
-
-        # Adjust x for the right side of the board
-        if 5 < point_id < 12:
-            x_base -= self.board.middle_area_width
-        elif 12 <= point_id < 17:
-            x_base = self.board.point_width * (point_id + 2) - self.board.box_width
-        elif point_id >= 17:
-            x_base = self.board.point_width * (point_id + 2) - self.board.box_width
-            x_base += self.board.middle_area_width
-
-        # Calculate y position based on the stack index
-        y_base = (stack_height + 1) * self.board.triangle_height // 5 - self.board.triangle_height // 5 // 2
-
-        if point_id >= 12:
-            y_base = self.board.height - (stack_height + 1) * self.board.triangle_height // 5 + self.board.triangle_height // 5 // 2
-
-        return x_base, y_base
-
+    
     def find_nearest_point(self, piece_pos):
         closest_distance = float('inf')
         closest_point = None
@@ -84,12 +63,44 @@ class App:
 
         # Add piece to the new point
         self.points[new_point_index].append(piece)
+        
+    def calculate_piece_position(self, point_id: int, stack_height: int):
+        # The original blit point for the surface of the piece image is centered in the middle top
+        x_base = self.board.box_width - (point_id + 1) * self.board.point_width + self.board.point_width // 2
+
+        # Adjust x for the right side of the board
+        if 5 < point_id < 12:
+            x_base -= self.board.middle_area_width
+        elif 12 <= point_id < 17:
+            x_base = self.board.point_width * (point_id + 2) - self.board.box_width
+        elif point_id >= 17:
+            x_base = self.board.point_width * (point_id + 2) - self.board.box_width
+            x_base += self.board.middle_area_width
+
+        # Adjust y position so pieces stack closely
+        piece_diameter = self.board.triangle_height // 5
+        y_base = piece_diameter // 2 + stack_height * piece_diameter
+
+        if point_id >= 12:
+            y_base = self.board.height - y_base
+
+        return x_base, y_base
+
 
     def add_piece(self, piece: Piece):
         self.positions.append(piece)
 
     def remove_piece(self, point):
         return self.positions[point].pop() if self.positions[point] else None
+    
+    def handle_all_events(self, event):
+        # Handling events for each piece
+        for piece in self.positions:
+            if piece.handle_event(event, self):
+                break
+        # Handle dice events
+        if self.dice.handle_event(event):
+            return
     
     def start(self):
         # Initializes all the pygame modules
@@ -100,13 +111,7 @@ class App:
                 if event.type == pygame.QUIT:
                     self.running = False
                 
-                # Handling events for each piece
-                for piece in self.positions:
-                    if piece.handle_event(event, self):
-                        break
-                # Handle dice events
-                if self.dice.handle_event(event):
-                    break
+                self.handle_all_events(event)
             
             # Test code
             print(self.dice.get_dice_values())
