@@ -53,7 +53,7 @@ class BackgammonBoard:
         self.point_height = self.triangles[0][0].get_height()
         
         # Original image has a empty space, this counts only triangle part of the image
-        self.triangle_height = self.point_height * 0.95
+        self.triangle_height = self.point_height * 0.75
 
         # Placing the assets using offsets
         self.offset_x = self.width - self.num_triangles_per_side*self.point_width
