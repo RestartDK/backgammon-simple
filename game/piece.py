@@ -20,7 +20,7 @@ class Piece:
         self.image = pygame.image.load(
             f"assets/images/{self.colour}-piece.png")
         self.image = pygame.transform.smoothscale(
-            self.image, (self.triangle_width, self.triangle_height//5))
+            self.image, (self.triangle_height//5, self.triangle_height//5))
         
     def render(self, screen):
         screen.blit(self.image, self.rect)
