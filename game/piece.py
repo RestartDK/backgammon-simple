@@ -1,6 +1,5 @@
 import pygame
 import math
-from game.backgammonboard import BackgammonBoard
 
 class Piece:
     def __init__(self, colour: str, screen:pygame.Surface, triangle_width: int, triangle_height: int, pos=(0, 0)):
@@ -55,18 +54,19 @@ class Piece:
         else:
             self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
 
-    def handle_event(self, event):
+    def handle_event(self, event, game):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
             self.offset = (self.rect.center[0] - event.pos[0], self.rect.center[1] - event.pos[1])
             self.dragging = True
             return True
+
         if self.dragging and event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             self.dragging = False
+            nearest_point_index, nearest_point_pos = game.find_nearest_point(self.rect.center)
+            self.move(nearest_point_pos, self.screen)
+            game.update_piece_position(self, nearest_point_index)
             return True
+
         if self.dragging and event.type == pygame.MOUSEMOTION:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
             return True
-        if event.type == pygame.MOUSEMOTION and self.criclecolide(event.pos):
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-            return True
-        return False
