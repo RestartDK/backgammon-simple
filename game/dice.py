@@ -3,35 +3,75 @@ import pygame
 
 class Dice:
     def __init__(self):
+        # Load images for the dice faces
         self.faces = [pygame.image.load(f"assets/images/dice-{i}.png") for i in range(1, 7)]
+        self.rolling = False
+        self.roll_start_time = None
+        self.current_face_values = [1, 1, 1, 1]  # Default dice face values
+        self.show_dice = 2  
+        
+        self.rects = [self.faces[0].get_rect() for _ in range(4)]
+
 
     def roll(self):
-        # Return a tuple of two random integers between 1 and 6
-        self.count= (random.randint(1, 6), random.randint(1, 6))
-        return self.count
-    
-    # This is a render method
-    def render(self, screen, position, face_values):
-        screen.blit(self.faces[face_values[0] - 1], position)
-        screen.blit(self.faces[face_values[1] - 1], (position[0] + self.faces[0].get_width(), position[1]))
-    
-    # This is a reset method
-    def reset(self):
-        #resets the counter for the eyes on the dice so that both become zero
-        self.EyeCounter = [0] * 2
-    
-    def theEyeCounter(self, eye):
-        self.EyeCounter = eye 
-    
-    def SimulateRollCount(self):
-        eye = sum(eye.count)
+        # Start rolling the dice
+        self.rolling = True
+        self.roll_start_time = pygame.time.get_ticks()
         
-        #in the rules of backgammon, if the numbers are the same, they double
-        if self.count[0] == self.count[1]:
-            eye = eye * 2
-    
+        self.show_dice = 2
+
+    def update(self):
+        # Update the dice roll animation and finalize the roll after a certain time
+        if self.rolling:
+            current_time = pygame.time.get_ticks()
+            time_since_roll = current_time - self.roll_start_time
+            roll_duration = 1000  
+            animation_interval = 1000  
+
+            if time_since_roll > roll_duration:
+                self.rolling = False
+                
+                self.finalize_roll()
+            else:
+                # Change the dice faces at specified intervals to slow down the animation
+                if (current_time // animation_interval) % 2 == 0:
+                    self.current_face_values = [random.randint(1, 6) for _ in range(2)]
+
+    def finalize_roll(self):
+        # Set the final dice values after rolling
+        self.current_face_values = [random.randint(1, 6) for _ in range(2)]
+        
+        if self.current_face_values[0] == self.current_face_values[1]:
+            self.current_face_values *= 2
+            self.show_dice = 4
+        else:
+            self.show_dice = 2
+
+    def render(self, screen, position):
+        # Render the current dice face values and update rects
+        for i in range(self.show_dice):
+            
+            die_position = (position[0] + i * (self.faces[0].get_width() + 10), position[1])
+            
+            self.rects[i].topleft = die_position
+            
+            screen.blit(self.faces[self.current_face_values[i] - 1], die_position)
+
     def collision(self, pos) -> bool:
-        for i in pygame.rect:
-            if pygame.rect.collidepoint(pos):
-                self.SimulateRollCount
+        # Check if the position collides with any of the shown dice
+        for i in range(self.show_dice):
+            if self.rects[i].collidepoint(pos):
                 return True
+        return False
+    
+    def moving_piece(self, num):
+        # Check based on the amount of dice rolls how far we can move the pieces
+        total_distance = 0
+        for _ in range(num):
+            die_roll = random.randint(1, 6)
+
+            # Double dice functionality
+            if self.current_face_values[0] == self.current_face_values[1]:
+                num += 1 #rolls again
+            total_distance += die_roll
+        return total_distance
