@@ -71,9 +71,9 @@ class App:
         # Adjust x for the right side of the board
         if 5 < point_id < 12:
             x_base -= self.board.middle_area_width
-        elif 12 <= point_id < 17:
+        elif 12 <= point_id < 18:
             x_base = self.board.point_width * (point_id + 2) - self.board.box_width
-        elif point_id >= 17:
+        elif point_id >= 18:
             x_base = self.board.point_width * (point_id + 2) - self.board.box_width
             x_base += self.board.middle_area_width
 
