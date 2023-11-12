@@ -94,14 +94,17 @@ class App:
         return self.positions[point].pop() if self.positions[point] else None
     
     def handle_all_events(self, event):
-        # Handling events for each piece
-        for piece in self.positions:
-            if piece.handle_event(event, self):
-                break
+    # Handling events for each piece
+        for stack in reversed(self.points):  # Check stacks from top to bottom
+            if stack:  # If the stack is not empty
+                top_piece = stack[-1]  # The top piece is the last piece in the stack
+                if top_piece.handle_event(event, self):  # Pass the event to the top piece only
+                    break  # If the top piece has handled the event, no need to check other stacks
+
         # Handle dice events
         if self.dice.handle_event(event):
             return
-    
+
     def start(self):
         # Initializes all the pygame modules
         pygame.init() 
