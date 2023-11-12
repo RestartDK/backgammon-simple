@@ -1,3 +1,4 @@
+from time import sleep
 from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
@@ -15,6 +16,7 @@ class App:
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice(self.screen)
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
+        self.current_player = 'white'   #TODO: Change this to depend on who starts
         self.initalise_pieces()
 
     def initalise_pieces(self):
@@ -112,7 +114,21 @@ class App:
         # Update and render dice only if button has been clicked
         if self.button.clicked:
             self.dice.update()
-            dice_position = (self.board.box_width//4 - self.dice.faces[0].get_width(), self.board.height//2 - self.dice.faces[0].get_height()//2)
+            """
+            if not self.dice.rolling:
+                self.button.set_clicked(False)
+                self.current_player = 'white' if self.current_player == 'black' else 'black' 
+            """  
+            # Adjust position based on number of dice shown
+            if self.current_player == 'white' and self.dice.show_dice == 2:
+                dice_position = (self.board.box_width//4 - self.dice.faces[0].get_width(), self.board.height//2 - self.dice.faces[0].get_height()//2)
+            elif self.current_player == 'white' and self.dice.show_dice == 4:
+                dice_position = (self.board.box_width//4 - self.dice.faces[0].get_width()*2, self.board.height//2 - self.dice.faces[0].get_height()//2)
+            elif self.current_player == 'black' and self.dice.show_dice == 2:
+                dice_position = (self.board.box_width//2 + self.board.middle_area_width + self.dice.faces[0].get_width(), self.board.height//2 - self.dice.faces[0].get_height()//2)
+            else:
+                dice_position = (self.board.box_width//2 + self.board.middle_area_width - self.dice.faces[0].get_width()//4, self.board.height//2 - self.dice.faces[0].get_height()//2)
+
             self.dice.render(dice_position)
 
         # Update and render each piece

@@ -8,33 +8,29 @@ class Dice:
         self.faces = [pygame.image.load(f"assets/images/dice-{i}.png") for i in range(1, 7)]
         self.rolling = False
         self.roll_start_time = None
+        self.roll_duration = 500
         self.current_face_values = [1, 1, 1, 1]  # Default dice face values
         self.show_dice = 2  
         self.rects = [self.faces[0].get_rect() for _ in range(4)]
-
 
     def roll(self):
         # Start rolling the dice
         self.rolling = True
         self.roll_start_time = pygame.time.get_ticks()
-        
         self.show_dice = 2
 
     def update(self):
-        # Update the dice roll animation and finalize the roll after a certain time
+        # Update the dice roll animation and finalize the roll after the roll duration
         if self.rolling:
             current_time = pygame.time.get_ticks()
             time_since_roll = current_time - self.roll_start_time
-            roll_duration = 800  
-            animation_interval = 800  
 
-            if time_since_roll > roll_duration:
+            if time_since_roll > self.roll_duration:
                 self.set_rolling(False)
                 self.finalize_roll()
             else:
-                # Change the dice faces at specified intervals to slow down the animation
-                if (current_time // animation_interval) % 2 == 0:
-                    self.current_face_values = [random.randint(1, 6) for _ in range(2)]
+                # Change the dice faces at each update to create the rolling effect
+                self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]
 
     def finalize_roll(self):
         # Set the final dice values after rolling
@@ -47,11 +43,7 @@ class Dice:
             self.show_dice = 2
 
     def render(self, position: tuple):
-        # Animate the dice if rolling
-        if self.rolling:
-            self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]
-        
-        # Render the current dice face values and update rects
+        # Render the current dice face values
         for i in range(self.show_dice):
             die_position = (position[0] + i * (self.faces[0].get_width() + 10), position[1])
             self.rects[i].topleft = die_position
