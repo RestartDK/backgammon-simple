@@ -54,19 +54,21 @@ class Piece:
         else:
             self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
 
-    def handle_event(self, event, game):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
-            self.offset = (self.rect.center[0] - event.pos[0], self.rect.center[1] - event.pos[1])
-            self.dragging = True
-            return True
+    def handle_event(self, event, app):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.rect.collidepoint(event.pos):
+            if self.colour == app.current_player and app.is_top_piece(self):  # Check if it's the top piece and the right player's turn
+                self.dragging = True
+                self.offset = (self.rect.x - event.pos[0], self.rect.y - event.pos[1])
+                return True
 
-        if self.dragging and event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.dragging:
             self.dragging = False
-            nearest_point_index, nearest_point_pos = game.find_nearest_point(self.rect.center)
-            self.move(nearest_point_pos, self.screen)
-            game.update_piece_position(self, nearest_point_index)
+            # Snap the piece back to its original position if the move is not legal
+            if not app.try_move_piece(self, event.pos):
+                app.snap_piece_back(self)
             return True
 
-        if self.dragging and event.type == pygame.MOUSEMOTION:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
+        if event.type == pygame.MOUSEMOTION and self.dragging:
+            self.rect.x = event.pos[0] + self.offset[0]
+            self.rect.y = event.pos[1] + self.offset[1]
             return True

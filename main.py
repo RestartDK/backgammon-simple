@@ -6,5 +6,6 @@ import os
 os.environ['SDL_VIDEO_CENTERED'] = '1' 
 
 if __name__ == "__main__":
+    pygame.init()
     game = App()
     game.start()

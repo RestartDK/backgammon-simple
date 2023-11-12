@@ -74,3 +74,31 @@ class Dice:
 
     def get_dice_values(self):
         return self.current_face_values
+
+
+class Button:
+    def __init__(self, screen, position, text, size=(200, 50), font_size=32, bg_color=(205, 133, 63), text_color=(255, 255, 255)):
+        self.screen = screen
+        self.x, self.y = position
+        self.width, self.height = size
+        self.text = text
+        self.font_size = font_size
+        self.bg_color = bg_color
+        self.text_color = text_color
+        self.font = pygame.font.Font(None, self.font_size)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+    def draw(self):
+        # Draw the button background
+        pygame.draw.rect(self.screen, self.bg_color, self.rect)
+        # Draw the text on the button
+        text_surface = self.font.render(self.text, True, self.text_color)
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        self.screen.blit(text_surface, text_rect)
+
+    def is_clicked(self, pos):
+        # Assuming your Button class has a `rect` attribute that defines its boundaries
+        if self.rect.collidepoint(pos):
+            return True
+        return False
+
