@@ -128,10 +128,20 @@ class App:
             self.dice.roll()
             self.dice_rolled = True
             # Reset dice values usage
-            if self.dice.current_face_values[0] == self.dice.current_face_values[1]:  # Check for doubles
+            if self.dice.current_face_values[0] == self.dice.current_face_values[1]:
                 self.dice_values_used = [False] * 4
             else:
                 self.dice_values_used = [False, False]
+
+            # In case of a roll that does not allow any legal moves, check and update the turn
+            self.check_and_update_turn()
+
+    def check_and_update_turn(self):
+        if all(self.dice_values_used):
+            self.alternate_turn()
+            self.dice_values_used = [False] * len(self.dice_values_used)
+            self.dice_rolled = False
+
 
 
     def alternate_turn(self):
@@ -151,29 +161,29 @@ class App:
             checker.move((x_base, y_base), self.screen)
 
             # Handle dice values
+            dice_indices = [i for i, x in enumerate(self.dice.current_face_values) if not self.dice_values_used[i]]
             if move_distance in self.dice.current_face_values:
                 # Check for doubles
                 if self.dice.current_face_values[0] == self.dice.current_face_values[1]:
                     # Mark the first unused double value as used
-                    for i in range(4):
-                        if not self.dice_values_used[i]:
-                            self.dice_values_used[i] = True
-                            break
+                    if dice_indices:
+                        self.dice_values_used[dice_indices[0]] = True
                 else:
                     # Handle non-doubles
-                    dice_index = self.dice.current_face_values.index(move_distance)
-                    self.dice_values_used[dice_index] = True
-            # If the move distance is the sum of both dice and neither has been used
-            elif sum(self.dice.current_face_values) == move_distance and not any(self.dice_values_used):
+                    if move_distance == self.dice.current_face_values[0]:
+                        self.dice_values_used[0] = True
+                    elif move_distance == self.dice.current_face_values[1]:
+                        self.dice_values_used[1] = True
+            elif sum(self.dice.current_face_values) == move_distance and len(dice_indices) == 2:
+                # If the move distance is the sum of both dice and neither has been used
                 self.dice_values_used = [True, True]
 
-            # Check if all dice values are used
-            if all(self.dice_values_used):
-                self.alternate_turn()
-                  # Reset dice values for the next turn
+            self.check_and_update_turn()
         else:
             # Snap the piece back to its original position if the move is not legal
             self.snap_piece_back(checker)
+
+               
 
 
 
