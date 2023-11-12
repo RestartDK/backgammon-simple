@@ -1,6 +1,7 @@
 from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
+from game.dice import Button
 import math
 import pygame
 
@@ -13,6 +14,7 @@ class App:
         self.running = True
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice(self.screen)
+        self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
         self.initalise_pieces()
 
     def initalise_pieces(self):
@@ -39,7 +41,7 @@ class App:
                 piece.move((x_base, y_base), self.screen)
                 self.add_piece(piece)
     
-    def find_nearest_point(self, piece_pos):
+    def find_nearest_point(self, piece_pos: tuple):
         closest_distance = float('inf')
         closest_point = None
         closest_index = -1
@@ -98,9 +100,28 @@ class App:
         for piece in self.positions:
             if piece.handle_event(event, self):
                 break
+        # Handle button events
+        self.button.handle_event(event)
         # Handle dice events
-        if self.dice.handle_event(event):
-            return
+        self.dice.handle_event(event)
+    
+    def render_all_assets(self):
+        # Render the board and pieces
+        self.board.render()
+        self.button.render()
+        # Update and render dice only if button has been clicked
+        if self.button.clicked:
+            self.dice.update()
+            dice_position = (self.board.box_width//4 - self.dice.faces[0].get_width(), self.board.height//2 - self.dice.faces[0].get_height()//2)
+            self.dice.render(dice_position)
+
+        # Update and render each piece
+        for piece in self.positions:
+            piece.update(self.screen)
+            piece.render(self.screen)
+
+        pygame.display.flip()
+        
     
     def start(self):
         # Initializes all the pygame modules
@@ -115,18 +136,9 @@ class App:
             
             # Test code
             print(self.dice.get_dice_values())
-            
-            # Render the board and pieces
-            self.board.render()
-            #self.dice.render((self.board.box_width//2 - self.board.middle_area_width - self.board.side_width + self.dice.faces[0].get_width()*2, self.board.height//2 - self.dice.faces[0].get_height()//2))
-            self.dice.update()
 
-            # Update and render each piece
-            for piece in self.positions:
-                piece.update(self.screen)
-                piece.render(self.screen)
-
-            pygame.display.flip()
+            # Render all the assets in the game
+            self.render_all_assets()
 
         # Quit Pygame when the main loop ends
         pygame.quit()

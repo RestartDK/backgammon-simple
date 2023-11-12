@@ -25,12 +25,11 @@ class Dice:
         if self.rolling:
             current_time = pygame.time.get_ticks()
             time_since_roll = current_time - self.roll_start_time
-            roll_duration = 1000  
-            animation_interval = 1000  
+            roll_duration = 800  
+            animation_interval = 800  
 
             if time_since_roll > roll_duration:
-                self.rolling = False
-                
+                self.set_rolling(False)
                 self.finalize_roll()
             else:
                 # Change the dice faces at specified intervals to slow down the animation
@@ -48,13 +47,14 @@ class Dice:
             self.show_dice = 2
 
     def render(self, position: tuple):
+        # Animate the dice if rolling
+        if self.rolling:
+            self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]
+        
         # Render the current dice face values and update rects
         for i in range(self.show_dice):
-            
             die_position = (position[0] + i * (self.faces[0].get_width() + 10), position[1])
-            
             self.rects[i].topleft = die_position
-            
             self.screen.blit(self.faces[self.current_face_values[i] - 1], die_position)
 
     def collision(self, pos) -> bool:
@@ -65,12 +65,40 @@ class Dice:
         return False
     
     def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            for rect in self.rects:
-                if rect.collidepoint(event.pos):
-                    self.roll()
-                    return True
-        return False
+        if self.rolling:
+            self.roll()
+    
+    def set_rolling(self, rolling: bool):
+        self.rolling = rolling
 
-    def get_dice_values(self):
+    def get_dice_values(self) -> list:
         return self.current_face_values
+    
+
+class Button:
+    def __init__(self, screen: pygame.Surface, position: tuple, dice: Dice):
+        self.screen = screen
+        self.position = position
+        self.dice = dice
+        self.clicked = False
+        self.generate_button()
+        self.button_rect = self.image.get_rect(center=self.position)
+
+    def generate_button(self):
+        self.image = pygame.image.load("assets/images/roll-button.png")
+        self.image = pygame.transform.smoothscale(
+            self.image, (self.screen.get_width()//4, self.screen.get_height()//10)
+        )
+        
+    def render(self):
+        if not self.clicked:
+            self.screen.blit(self.image, self.button_rect)
+        
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if self.button_rect.collidepoint(event.pos):
+                    self.dice.set_rolling(True)
+                    self.set_clicked(True)
+                    
+    def set_clicked(self, clicked: bool):
+        self.clicked = clicked
