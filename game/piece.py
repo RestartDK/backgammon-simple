@@ -1,5 +1,6 @@
 import pygame
 import math
+from game.dice import Dice
 
 class Piece:
     def __init__(self, colour: str, screen:pygame.Surface, triangle_width: int, triangle_height: int, pos=(0, 0)):
@@ -31,9 +32,25 @@ class Piece:
                 pos[1] + self.offset[1])
         screen.blit(self.image, self.rect)
 
-    def move(self, pos, screen):
+    def move(self, pos: tuple, screen):
         self.rect.center = (pos[0], pos[1])
         screen.blit(self.image, self.rect)
+    
+    def move_dice(self, dice_value: list, app):
+        current_point = app.find_piece_point_index(self)
+        if self.colour == "black":
+            new_point = current_point + dice_value
+        else:
+            new_point = current_point - dice_value
+
+        if new_point < 0 or new_point > 23:
+            # Handle cases where the new point is outside the board (e.g., bearing off)
+            return False
+
+        new_position = app.calculate_piece_position(new_point, len(app.points[new_point]))
+        self.move(new_position, app.screen)
+        app.update_piece_position(self, new_point)
+        return True
 
     def criclecolide(self, pos):
         if not self.rect.collidepoint(pos):
@@ -54,19 +71,17 @@ class Piece:
         else:
             self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
 
-    def handle_event(self, event, game):
+    def handle_event(self, event, app, dice: Dice):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
             self.offset = (self.rect.center[0] - event.pos[0], self.rect.center[1] - event.pos[1])
             self.dragging = True
-            return True
 
-        if self.dragging and event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            self.dragging = False
-            nearest_point_index, nearest_point_pos = game.find_nearest_point(self.rect.center)
-            self.move(nearest_point_pos, self.screen)
-            game.update_piece_position(self, nearest_point_index)
-            return True
-
-        if self.dragging and event.type == pygame.MOUSEMOTION:
-            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_SIZEALL)
-            return True
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if self.dragging:
+                self.dragging = False
+                nearest_point_index, nearest_point = app.find_nearest_point(self.rect.center)
+                if app.attempt_piece_move(self, nearest_point_index):
+                    self.move(nearest_point, self.screen)
+                    print(nearest_point_index)
+                    app.update_piece_position(self, nearest_point_index)
+                    #TODO: Move piece back to original position

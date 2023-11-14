@@ -1,6 +1,8 @@
+from time import sleep
 from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
+from game.dice import Button
 import math
 import pygame
 
@@ -13,6 +15,8 @@ class App:
         self.running = True
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice(self.screen)
+        self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
+        self.current_player = 'black'   #TODO: Change this to depend on who starts
         self.initalise_pieces()
 
     def initalise_pieces(self):
@@ -39,7 +43,7 @@ class App:
                 piece.move((x_base, y_base), self.screen)
                 self.add_piece(piece)
     
-    def find_nearest_point(self, piece_pos):
+    def find_nearest_point(self, piece_pos: tuple) -> int | tuple:
         closest_distance = float('inf')
         closest_point = None
         closest_index = -1
@@ -54,7 +58,7 @@ class App:
 
         return closest_index, closest_point
     
-    def update_piece_position(self, piece, new_point_index):
+    def update_piece_position(self, piece: Piece, new_point_index: int):
         # Remove piece from its current point
         for point in self.points:
             if piece in point:
@@ -86,21 +90,87 @@ class App:
 
         return x_base, y_base
 
-
     def add_piece(self, piece: Piece):
         self.positions.append(piece)
 
     def remove_piece(self, point):
         return self.positions[point].pop() if self.positions[point] else None
     
+    def handle_piece_movement(self, piece: Piece, new_point_index: int):
+        move_distance = self.calculate_move_distance(piece, new_point_index)
+        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            piece.move_to_point(new_point_index, self.screen)
+            self.update_piece_position(piece, new_point_index)
+            self.dice.current_face_values.remove(move_distance)
+            self.change_turn()
+
+    def calculate_move_distance(self, piece: Piece, new_point_index: int):
+        current_point_index = self.find_piece_point_index(piece)
+        if piece.colour == "black":
+            return new_point_index - current_point_index
+        else:
+            return current_point_index - new_point_index
+
+    
+    def find_piece_point_index(self, piece: Piece) -> int:
+        for point_index, point in enumerate(self.points):
+            if piece in point:
+                return point_index
+        return -1
+
+    def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
+        move_distance = self.calculate_move_distance(piece, new_point_index)
+        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            self.update_piece_position(piece, new_point_index)
+            self.dice.current_face_values.remove(move_distance)
+            self.change_turn()
+            return True
+        return False
+
+    def change_turn(self):
+        # Check to see if turn has ended
+        if not self.dice.get_current_face_values():
+            # Logic to end the current player's turn and switch to the other player
+            self.button.set_clicked(False)
+            self.current_player = 'white' if self.current_player == 'black' else 'black'
+    
     def handle_all_events(self, event):
         # Handling events for each piece
         for piece in self.positions:
-            if piece.handle_event(event, self):
+            if piece.handle_event(event, self, self.dice):
                 break
+        # Handle button events
+        self.button.handle_event(event)
         # Handle dice events
-        if self.dice.handle_event(event):
-            return
+        self.dice.handle_event(event)
+    
+    def render_all_assets(self):
+        # Render the board and pieces
+        self.board.render()
+        self.button.render()
+        # Update and render dice only if button has been clicked
+        if self.button.clicked:
+            self.dice.update()
+            # Adjust position based on number of dice shown
+            if self.current_player == 'white' and self.dice.show_dice == 2:
+                dice_position = (self.board.box_width//4 - self.dice.faces[0].get_width(), self.board.height//2 - self.dice.faces[0].get_height()//2)
+            elif self.current_player == 'white' and self.dice.show_dice == 4:
+                dice_position = (self.board.box_width//4 - self.dice.faces[0].get_width()*2, self.board.height//2 - self.dice.faces[0].get_height()//2)
+            elif self.current_player == 'black' and self.dice.show_dice == 2:
+                dice_position = (self.board.box_width//2 + self.board.middle_area_width + self.dice.faces[0].get_width(), self.board.height//2 - self.dice.faces[0].get_height()//2)
+            else:
+                dice_position = (self.board.box_width//2 + self.board.middle_area_width - self.dice.faces[0].get_width()//4, self.board.height//2 - self.dice.faces[0].get_height()//2)
+            
+            self.dice.render(dice_position)
+                
+
+        # Update and render each piece
+        for piece in self.positions:
+            piece.update(self.screen)
+            piece.render(self.screen)
+
+        pygame.display.flip()
+        
     
     def start(self):
         # Initializes all the pygame modules
@@ -112,21 +182,9 @@ class App:
                     self.running = False
                 
                 self.handle_all_events(event)
-            
-            # Test code
-            print(self.dice.get_dice_values())
-            
-            # Render the board and pieces
-            self.board.render()
-            #self.dice.render((self.board.box_width//2 - self.board.middle_area_width - self.board.side_width + self.dice.faces[0].get_width()*2, self.board.height//2 - self.dice.faces[0].get_height()//2))
-            self.dice.update()
 
-            # Update and render each piece
-            for piece in self.positions:
-                piece.update(self.screen)
-                piece.render(self.screen)
-
-            pygame.display.flip()
+            # Render all the assets in the game
+            self.render_all_assets()
 
         # Quit Pygame when the main loop ends
         pygame.quit()
