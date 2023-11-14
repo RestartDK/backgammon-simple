@@ -5,13 +5,16 @@ class Dice:
     def __init__(self, screen: pygame.Surface):
         # Load images for the dice faces
         self.screen = screen
-        self.faces = [pygame.image.load(f"assets/images/dice-{i}.png") for i in range(1, 7)]
+        self.generate()
         self.rolling = False
         self.roll_start_time = None
         self.roll_duration = 500
         self.current_face_values = [1, 1, 1, 1]  # Default dice face values
         self.show_dice = 2  
         self.rects = [self.faces[0].get_rect() for _ in range(4)]
+    
+    def generate(self):
+        self.faces = [pygame.image.load(f"assets/images/dice-{i}.png") for i in range(1, 7)]
 
     def roll(self):
         # Start rolling the dice
@@ -43,11 +46,11 @@ class Dice:
             self.show_dice = 2
 
     def render(self, position: tuple):
-        # Render the current dice face values
-        for i in range(self.show_dice):
-            die_position = (position[0] + i * (self.faces[0].get_width() + 10), position[1])
-            self.rects[i].topleft = die_position
-            self.screen.blit(self.faces[self.current_face_values[i] - 1], die_position)
+        for i in range(len(self.current_face_values)):  # Use length of current_face_values
+            die_index = self.current_face_values[i] - 1
+            if 0 <= die_index < len(self.faces):
+                die_position = (position[0] + i * (self.faces[0].get_width() + 10), position[1])
+                self.screen.blit(self.faces[die_index], die_position)
 
     def collision(self, pos) -> bool:
         # Check if the position collides with any of the shown dice
@@ -63,7 +66,7 @@ class Dice:
     def set_rolling(self, rolling: bool):
         self.rolling = rolling
 
-    def get_dice_values(self) -> list:
+    def get_current_face_values(self) -> list:
         return self.current_face_values
     
 
@@ -88,9 +91,9 @@ class Button:
         
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.button_rect.collidepoint(event.pos):
-                    self.dice.set_rolling(True)
-                    self.set_clicked(True)
+            if self.button_rect.collidepoint(event.pos):
+                self.dice.set_rolling(True)
+                self.set_clicked(True)
                     
     def set_clicked(self, clicked: bool):
         self.clicked = clicked
