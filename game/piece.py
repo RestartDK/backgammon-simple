@@ -82,6 +82,5 @@ class Piece:
                 nearest_point_index, nearest_point = app.find_nearest_point(self.rect.center)
                 if app.attempt_piece_move(self, nearest_point_index):
                     self.move(nearest_point, self.screen)
-                    print(nearest_point_index)
                     app.update_piece_position(self, nearest_point_index)
                     #TODO: Move piece back to original position
