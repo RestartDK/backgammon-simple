@@ -99,7 +99,6 @@ class App:
     def handle_piece_movement(self, piece: Piece, new_point_index: int):
         move_distance = self.calculate_move_distance(piece, new_point_index)
         if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
-            # TODO: Change Here
             piece.move_to_point(new_point_index, self.screen)
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
@@ -121,8 +120,6 @@ class App:
 
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         move_distance = self.calculate_move_distance(piece, new_point_index)
-        print(move_distance)
-        print(self.dice.get_current_face_values())
         if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
@@ -185,9 +182,6 @@ class App:
                     self.running = False
                 
                 self.handle_all_events(event)
-            
-            # Test code
-            #print(self.dice.get_dice_values())
 
             # Render all the assets in the game
             self.render_all_assets()
