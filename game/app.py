@@ -119,13 +119,25 @@ class App:
         return -1
 
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
+        original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
+
         if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
             return True
-        return False
+        else:
+            # Move the piece back to its original position
+            self.update_piece_position(piece, original_point_index)
+            self.restack_pieces_at_point(original_point_index)
+            return False
+
+    def restack_pieces_at_point(self, point_index):
+        for stack_index, piece in enumerate(self.points[point_index]):
+            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
+            piece.move((x_base, y_base), self.screen)
+
 
     def change_turn(self):
         # Check to see if turn has ended
