@@ -63,13 +63,14 @@ class Piece:
         return d <= self.image.get_width()/2
     
     # Handle piece being eaten
-    def eaten(self):
+    def eat(self, screen, mid_len):
         self.eaten = True
 
-        if self.black:
-            self.rect.center = (self.screen.get_width() // 2, self.screen.get_height() - self.image.get_height() // 2)
+        if self.colour == "black":
+            self.rect.center = ((self.screen.get_width() // 2) - 0.08*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * mid_len)
         else:
-            self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
+            self.rect.center = ((self.screen.get_width()  // 2)- 0.04*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * mid_len) 
+        screen.blit(self.image, self.rect.center)
 
     def handle_event(self, event, app, dice: Dice):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
@@ -84,3 +85,12 @@ class Piece:
                     self.move(nearest_point, self.screen)
                     app.update_piece_position(self, nearest_point_index)
                     #TODO: Move piece back to original position
+                    #reset_position(self)
+
+    def reset_position(self,screen):
+        #use the update_piece_position method to move to another stack
+
+        
+        x_black_original, y_black_original = self.calculate_piece_position(0, 0)
+        reset_white = (x_black_original, y_black_original)
+        screen.blit(self.image, reset_white)

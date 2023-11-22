@@ -31,6 +31,8 @@ class App:
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
 
+        #define a white and black stack in the center (mid) - for the eaten pieces
+        self.mid = [[] for _ in range(2)]
 
         # Calculate positions for each piece
         self.positions = list()
@@ -121,11 +123,35 @@ class App:
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
+        
+        correct_stack = False
+        eat = False
 
-        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+        if len(self.points[new_point_index]) == 0: #stack that we're moving the piece into already doesn't have pieces within
+            correct_stack = True
+        elif self.points[new_point_index][0].colour == piece.colour: #check that the element in the first stack equals the player's color
+            correct_stack = True
+        elif len(self.points[new_point_index]) == 1:
+            eat = True
+            correct_stack = True
+            
+        if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            if eat:
+                mid_len = 0
+                mid_pos = 0
+                if piece.colour == 'black':
+                    mid_pos = 0
+                    mid_len = len(self.mid[0])
+                else:
+                    mid_pos = 1
+                    mid_len = len(self.mid[1])
+                self.points[new_point_index][0].eat(self.screen, mid_len) #moving the image
+                self.mid[mid_pos].append(self.points[new_point_index].pop())
+                print("stack: ", len(self.points[new_point_index]))
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
+
             return True
         else:
             # Move the piece back to its original position
