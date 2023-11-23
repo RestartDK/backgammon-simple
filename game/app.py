@@ -89,20 +89,7 @@ class App:
             y_base = self.board.height - y_base
 
         return x_base, y_base
-
-    def add_piece(self, piece: Piece):
-        self.positions.append(piece)
-
-    def remove_piece(self, point):
-        return self.positions[point].pop() if self.positions[point] else None
     
-    def handle_piece_movement(self, piece: Piece, new_point_index: int):
-        move_distance = self.calculate_move_distance(piece, new_point_index)
-        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
-            piece.move_to_point(new_point_index, self.screen)
-            self.update_piece_position(piece, new_point_index)
-            self.dice.current_face_values.remove(move_distance)
-            self.change_turn()
 
     def calculate_move_distance(self, piece: Piece, new_point_index: int):
         current_point_index = self.find_piece_point_index(piece)
@@ -111,7 +98,6 @@ class App:
         else:
             return current_point_index - new_point_index
 
-    
     def find_piece_point_index(self, piece: Piece) -> int:
         for point_index, point in enumerate(self.points):
             if piece in point:
@@ -145,6 +131,14 @@ class App:
             # Logic to end the current player's turn and switch to the other player
             self.button.set_clicked(False)
             self.current_player = 'white' if self.current_player == 'black' else 'black'
+            
+    def handle_piece_movement(self, piece: Piece, new_point_index: int):
+        move_distance = self.calculate_move_distance(piece, new_point_index)
+        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            piece.move_to_point(new_point_index, self.screen)
+            self.update_piece_position(piece, new_point_index)
+            self.dice.current_face_values.remove(move_distance)
+            self.change_turn()
     
     def handle_all_events(self, event):
         # Handling events for each piece
@@ -180,13 +174,22 @@ class App:
         for piece in self.positions:
             piece.update(self.screen)
             piece.render(self.screen)
+        
+        # Update the counter for the number of pieces beared off
+        self.board.update(self.current_player)
 
         pygame.display.flip()
+    
+    def add_piece(self, piece: Piece):
+        self.positions.append(piece)
+
+    def remove_piece(self, point):
+        return self.positions[point].pop() if self.positions[point] else None
         
     
     def start(self):
         # Initializes all the pygame modules
-        pygame.init() 
+        pygame.init()
 
         while self.running:
             for event in pygame.event.get():
