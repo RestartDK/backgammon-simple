@@ -17,6 +17,8 @@ class App:
         self.dice = Dice(self.screen)
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
         self.current_player = 'black'   #TODO: Change this to depend on who starts
+        self.black_counter = 0 #number of black pieces removed from the board
+        self.white_counter = 0 #number of white pieces removed from the board
         self.initalise_pieces()
 
     def initalise_pieces(self):
@@ -190,6 +192,17 @@ class App:
     def start(self):
         # Initializes all the pygame modules
         pygame.init()
+    
+    def counter(self, piece: Piece, new_position):
+        for point in self.points:
+            if piece in point:
+                point.remove(piece)
+                break
+        if new_position == -1: 
+            if piece.colour == "black":
+                self.black_counter += 1
+            else:
+                self.white_counter += 1
 
         while self.running:
             for event in pygame.event.get():
