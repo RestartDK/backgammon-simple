@@ -21,6 +21,14 @@ class Dice:
         self.rolling = True
         self.roll_start_time = pygame.time.get_ticks()
         self.show_dice = 2
+    
+    def set_single_dice_mode(self, single_dice_mode):
+        self.single_dice_mode = single_dice_mode
+        if single_dice_mode:
+            self.show_dice = 1
+        else:
+            self.show_dice = 2
+
 
     def update(self):
         # Update the dice roll animation and finalize the roll after the roll duration

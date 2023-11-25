@@ -7,7 +7,7 @@ import math
 import pygame
 
 class App:
-    def __init__(self):
+    def __init__(self, starting_player):
         # Initialise screen for board
         self.screen_width = 1525
         self.screen_height = 900
@@ -16,7 +16,7 @@ class App:
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice(self.screen)
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
-        self.current_player = 'black'   #TODO: Change this to depend on who starts
+        self.current_player = starting_player  #TODO: Change this to depend on who starts
         self.initalise_pieces()
 
     def initalise_pieces(self):
