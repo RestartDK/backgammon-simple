@@ -7,6 +7,7 @@ class Piece:
         self.screen = screen
         self.eaten = False
         self.dragging = False
+        self.beared_off = False
         self.colour = colour
         self.triangle_width = triangle_width
         self.triangle_height = triangle_height
@@ -23,7 +24,8 @@ class Piece:
             self.image, (self.triangle_height//5, self.triangle_height//5))
         
     def render(self, screen):
-        screen.blit(self.image, self.rect)
+        if self.beared_off:
+            screen.blit(self.image, self.rect)
 
     def update(self, screen):
         if self.dragging:
@@ -81,6 +83,6 @@ class Piece:
                 self.dragging = False
                 nearest_point_index, nearest_point = app.find_nearest_point(self.rect.center)
                 if app.attempt_piece_move(self, nearest_point_index):
-                    self.move(nearest_point, self.screen)
-                    app.update_piece_position(self, nearest_point_index)
-                    #TODO: Move piece back to original position
+                    if not self.beared_off:
+                        self.move(nearest_point, self.screen)
+                        app.update_piece_position(self, nearest_point_index)
