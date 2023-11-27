@@ -63,6 +63,18 @@ class Dice:
         if self.rolling:
             self.roll()
     
+    def get_closest_dice_value(self, move_distance: int) -> int:
+        # Find the dice value closest to the move_distance
+        closest_value = None
+        min_difference = float('inf')
+        for value in self.get_current_face_values():
+            difference = abs(move_distance - value)
+            if difference < min_difference:
+                min_difference = difference
+                closest_value = value
+        return closest_value
+
+    
     def set_rolling(self, rolling: bool):
         self.rolling = rolling
 
