@@ -15,13 +15,14 @@ class App:
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice(self.screen)
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
-        self.current_player = 'black'   #TODO: Change this to depend on who starts
+        self.current_player = 'black' 
         self.initalise_pieces()
 
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
         self.points = [[] for _ in range(24)]
-
+        
+        """
         self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
         self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
@@ -30,11 +31,11 @@ class App:
         self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
-
+        """
+        self.points[19] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
 
         # Calculate positions for each piece
         self.positions = list()
-        # All duplicate width/height add/sub are used due to weird nature of images in pygame
         for point_id, stack in enumerate(self.points):           
             for piece_id, piece in enumerate(stack):
                 # Calculate offset placement
@@ -64,7 +65,6 @@ class App:
         if piece_pos[0] > self.board.box_width:
             return -1, closest_point  # Use -1 to indicate bear-off
 
-        print(f'closet_index: {closest_index}   closest_point {closest_point}')
         return closest_index, closest_point
     
     def update_piece_position(self, piece: Piece, new_point_index: int):
@@ -209,6 +209,7 @@ class App:
         # Check for bearing off
         if self.can_bear_off(self.current_player):
             if self.is_valid_bear_off_move(original_point_index, move_distance):
+                # To deal non exact bearing moves
                 dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
                 if dice_value_to_remove is not None:
                     # Bear off the piece
@@ -223,21 +224,12 @@ class App:
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
             return True
-        else:
-            # If the piece cannot move, check if it can be beared off instead
-            if self.can_bear_off(self.current_player) and new_point_index == -1:
-                dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
-                if dice_value_to_remove is not None:
-                    # Bear off the piece
-                    self.bear_off_piece(piece)
-                    self.dice.current_face_values.remove(dice_value_to_remove)
-                    self.change_turn()
-                    return True
-            else:
-                # Move the piece back to its original position
-                self.update_piece_position(piece, original_point_index)
-                self.restack_pieces_at_point(original_point_index)
-                return False
+        
+        
+        # Move the piece back to its original position if no other valid move
+        self.update_piece_position(piece, original_point_index)
+        self.restack_pieces_at_point(original_point_index)
+        return False
 
 
             
@@ -254,9 +246,8 @@ class App:
         for piece in self.positions:
             if piece.handle_event(event, self, self.dice):
                 break
-        # Handle button events
+            
         self.button.handle_event(event)
-        # Handle dice events
         self.dice.handle_event(event)
     
     
@@ -296,9 +287,6 @@ class App:
     """
     def add_piece(self, piece: Piece):
         self.positions.append(piece)
-
-    def remove_piece(self, point):
-        return self.positions[point].pop() if self.positions[point] else None
         
     
     """
