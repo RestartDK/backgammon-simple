@@ -1,4 +1,3 @@
-from time import sleep
 from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
@@ -22,7 +21,7 @@ class App:
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
         self.points = [[] for _ in range(24)]
-        """ Original code
+
         self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
         self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
@@ -31,14 +30,6 @@ class App:
         self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
-        """
-        
-        """Test Code"""
-        self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
-
-        # Setup for testing white pieces bearing off
-        self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
-
 
 
         # Calculate positions for each piece
@@ -162,27 +153,19 @@ class App:
                         
         return True
         
-    # Check if the bear off move is valid based on the dice roll and piece positions.
     def is_valid_bear_off_move(self, current_point_index: int, move_distance: int) -> bool:
-        # For black pieces
-        print(f'current point: {current_point_index}    move distance: {move_distance}')
         if self.current_player == 'black':
             # Check if the piece can be beared off exactly
-            if current_point_index + move_distance > 23:
-                print("can be beared off exactly")
+            if current_point_index + move_distance == 24:
                 return True
-            
-            
-        
-        # For white pieces - similar logic adjusted for white piece positions
+            # Check for bearing off when the roll is larger than needed
+            elif current_point_index + move_distance > 24:
+                return all(not self.points[i] for i in range(current_point_index + 1, 24))
         elif self.current_player == 'white':
-            if current_point_index - move_distance < 0:
+            if current_point_index - move_distance == -1:
                 return True
-            
-            for i in range(0, 6):  # Check from point 0 up to 5
-                if self.points[i] and i > current_point_index:
-                    return True
-
+            elif current_point_index - move_distance < -1:
+                return all(not self.points[i] for i in range(0, current_point_index))
         return False
 
     # Bear off the piece and update the board and counters.
@@ -222,18 +205,17 @@ class App:
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
-        
+
         # Check for bearing off
-        if self.can_bear_off(self.current_player) is True:
+        if self.can_bear_off(self.current_player):
             if self.is_valid_bear_off_move(original_point_index, move_distance):
-                
-                self.bear_off_piece(piece)
-                self.dice.current_face_values.remove(move_distance)
-                self.change_turn()
-                print(f'beared {piece.beared_off}')
-                print(self.points)
-                return True
-                
+                dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
+                if dice_value_to_remove is not None:
+                    # Bear off the piece
+                    self.bear_off_piece(piece)
+                    self.dice.current_face_values.remove(dice_value_to_remove)
+                    self.change_turn()
+                    return True
 
         # Attempting normal movement in game
         if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
@@ -242,10 +224,22 @@ class App:
             self.change_turn()
             return True
         else:
-            # Move the piece back to its original position
-            self.update_piece_position(piece, original_point_index)
-            self.restack_pieces_at_point(original_point_index)
-            return False
+            # If the piece cannot move, check if it can be beared off instead
+            if self.can_bear_off(self.current_player) and new_point_index == -1:
+                dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
+                if dice_value_to_remove is not None:
+                    # Bear off the piece
+                    self.bear_off_piece(piece)
+                    self.dice.current_face_values.remove(dice_value_to_remove)
+                    self.change_turn()
+                    return True
+            else:
+                # Move the piece back to its original position
+                self.update_piece_position(piece, original_point_index)
+                self.restack_pieces_at_point(original_point_index)
+                return False
+
+
             
     def handle_piece_movement(self, piece: Piece, new_point_index: int):
         move_distance = self.calculate_move_distance(piece, new_point_index)
