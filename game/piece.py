@@ -84,13 +84,3 @@ class Piece:
                 if app.attempt_piece_move(self, nearest_point_index):
                     self.move(nearest_point, self.screen)
                     app.update_piece_position(self, nearest_point_index)
-                    #TODO: Move piece back to original position
-                    #reset_position(self)
-
-    def reset_position(self,screen):
-        #use the update_piece_position method to move to another stack
-
-        
-        x_black_original, y_black_original = self.calculate_piece_position(0, 0)
-        reset_white = (x_black_original, y_black_original)
-        screen.blit(self.image, reset_white)

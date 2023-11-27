@@ -137,17 +137,16 @@ class App:
             
         if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
             if eat:
-                mid_len = 0
-                mid_pos = 0
+                mid_len = 0 #needed to calculate the position of the following pieces in eat() 
+                mid_pos = 0 #stack index
                 if piece.colour == 'black':
-                    mid_pos = 0
+                    mid_pos = 0 
                     mid_len = len(self.mid[0])
                 else:
-                    mid_pos = 1
+                    mid_pos = 1 #stack index
                     mid_len = len(self.mid[1])
                 self.points[new_point_index][0].eat(self.screen, mid_len) #moving the image
                 self.mid[mid_pos].append(self.points[new_point_index].pop())
-                print("stack: ", len(self.points[new_point_index]))
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
@@ -164,6 +163,19 @@ class App:
             x_base, y_base = self.calculate_piece_position(point_index, stack_index)
             piece.move((x_base, y_base), self.screen)
 
+    #TODO: I still have to debug the reset_position()
+    def reset_position(self, screen, piece):
+        #this function will only run if the stack is empty or the player's own color is contained in the stack
+        #(otherwise the game will crash due to logic throughout the code)
+        if (len(self.points[0] == 0) or self.points[0][0].colour() == 'black') or (len(self.points[23] == 0) or self.points[23][0].colour() == 'white'):
+            #use the update_piece_position method to move to another stack
+            if self.colour == 'black':
+                x_original, y_original = self.calculate_piece_position(self.points[0], len(self.points[0]))
+            else: 
+                x_original, y_original = self.calculate_piece_position(self.points[23], len(self.points[23]))
+
+            original_position = (x_original, y_original)
+            screen.blit(piece, original_position)
 
     def change_turn(self):
         # Check to see if turn has ended
@@ -171,6 +183,15 @@ class App:
             # Logic to end the current player's turn and switch to the other player
             self.button.set_clicked(False)
             self.current_player = 'white' if self.current_player == 'black' else 'black'
+            if self.current_player.colour == 'black':
+                mid_pos = 1
+            elif self.current_player.colour == 'white':
+                mid_pos = 0
+            for i in range(len(self.mid[mid_pos])):
+                self.reset_position(self, self.screen, self.mid[mid_pos][i]) #this returns the ith element in the stack, 
+                #which will get blitted with reset_position()
+    
+                
     
     def handle_all_events(self, event):
         # Handling events for each piece
