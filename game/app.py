@@ -163,19 +163,17 @@ class App:
             x_base, y_base = self.calculate_piece_position(point_index, stack_index)
             piece.move((x_base, y_base), self.screen)
 
-    #TODO: I still have to debug the reset_position()
+    #when a piece is eaten, it goes to the middle stack, and when it
+    #becomes the other player's turn, the piece is "reset" to the first stack of that color
     def reset_position(self, screen, piece):
         #this function will only run if the stack is empty or the player's own color is contained in the stack
         #(otherwise the game will crash due to logic throughout the code)
-        if (len(self.points[0] == 0) or self.points[0][0].colour() == 'black') or (len(self.points[23] == 0) or self.points[23][0].colour() == 'white'):
-            #use the update_piece_position method to move to another stack
-            if self.colour == 'black':
-                x_original, y_original = self.calculate_piece_position(self.points[0], len(self.points[0]))
-            else: 
-                x_original, y_original = self.calculate_piece_position(self.points[23], len(self.points[23]))
-
-            original_position = (x_original, y_original)
-            screen.blit(piece, original_position)
+        if piece.colour == 'black' and (len(self.points[0]) == 0 or self.points[0][0].colour == 'black'):
+            x_original, y_original = self.calculate_piece_position(0, len(self.points[0]))
+        elif piece.colour == 'white' and (len(self.points[23]) == 0 or self.points[23][0].colour == 'white'): 
+            x_original, y_original = self.calculate_piece_position(23, len(self.points[23]))
+        piece.move((x_original, y_original), self.screen)
+    #TODO: we must append the piece to the original stack and remove from the mid stack(backend) 
 
     def change_turn(self):
         # Check to see if turn has ended
@@ -183,12 +181,12 @@ class App:
             # Logic to end the current player's turn and switch to the other player
             self.button.set_clicked(False)
             self.current_player = 'white' if self.current_player == 'black' else 'black'
-            if self.current_player.colour == 'black':
+            if self.current_player == 'black':
                 mid_pos = 1
-            elif self.current_player.colour == 'white':
+            elif self.current_player == 'white':
                 mid_pos = 0
             for i in range(len(self.mid[mid_pos])):
-                self.reset_position(self, self.screen, self.mid[mid_pos][i]) #this returns the ith element in the stack, 
+                self.reset_position(self.screen, self.mid[mid_pos][i]) #this returns the ith element in the stack, 
                 #which will get blitted with reset_position()
     
                 
