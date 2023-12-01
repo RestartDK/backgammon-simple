@@ -21,7 +21,7 @@ class App:
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
         self.points = [[] for _ in range(24)]
-        
+
         self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
         self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
@@ -30,6 +30,7 @@ class App:
         self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+
 
         # Calculate positions for each piece
         self.positions = list()
