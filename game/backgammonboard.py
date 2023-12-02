@@ -1,3 +1,4 @@
+import time
 import pygame
 
 class BackgammonBoard:
@@ -5,6 +6,8 @@ class BackgammonBoard:
         self.screen = screen
         self.num_triangles_per_side = 12
         self.middle_area_width = 100
+        self.counter_white = 0
+        self.counter_black = 0
         self.generate_board()
 
     def generate_board(self):
@@ -29,6 +32,10 @@ class BackgammonBoard:
         self.v_line = pygame.transform.smoothscale(
             self.v_line, (self.v_line_width, self.screen.get_height())
         )
+        
+        # Initialise font for displaying the number of pieces beared off
+        pygame.font.init()  # Initialize font module
+        self.counter_font = pygame.font.Font(None, 36)  # Create a Font object
 
         # Initialize triangles list
         self.triangles = list()
@@ -77,3 +84,17 @@ class BackgammonBoard:
         # Blit the v-line
         v_line_x = self.box_width // 2
         self.screen.blit(self.v_line, (v_line_x, 0))
+        
+        # Render and blit the text for the number of pieces beared off
+        counter_text_white = self.counter_font.render(f'{self.counter_white}', True, (255, 255, 255))
+        counter_text_black = self.counter_font.render(f'{self.counter_black}', True, (0, 0, 0))
+        self.screen.blit(counter_text_white, (self.box_width + self.side_width//2, self.height//4))
+        self.screen.blit(counter_text_black, (self.box_width + self.side_width//2, self.height//4 + self.height//2))
+        
+    def update(self, current_player: str, beared: bool):
+        # If a piece is moved, update the respective counter
+        if beared:
+            if current_player == 'white':
+                self.counter_white += 1
+            elif current_player == 'black':
+                self.counter_black += 1
