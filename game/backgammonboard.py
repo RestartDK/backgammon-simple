@@ -95,4 +95,26 @@ class BackgammonBoard:
 
             # Blit upper triangles
             # In other words, draw the triangles on the board
-            self.screen.blit(self.triangles[0][id
+            self.screen.blit(self.triangles[0][idx % 2], (x, 0))
+            # Blit lower triangles
+            self.screen.blit(self.triangles[1][idx % 2], (x, self.screen.get_height() // 2))
+
+        # Blit the v-line
+        v_line_x = self.box_width // 2
+        self.screen.blit(self.v_line, (v_line_x, 0))
+        
+        # Render and blit the text for the number of pieces beared off
+        counter_text_white = self.counter_font.render(f'{self.counter_white}', True, (255, 255, 255))
+        counter_text_black = self.counter_font.render(f'{self.counter_black}', True, (0, 0, 0))
+        self.screen.blit(counter_text_white, (self.box_width + self.side_width//2, self.height//4))
+        self.screen.blit(counter_text_black, (self.box_width + self.side_width//2, self.height//4 + self.height//2))
+        
+    def update(self, current_player: str, beared: bool):
+        # Time Complexity is O(1), for both the worst and average case
+        # Because this function relies on arithmetics operations and checking conditions
+        # If a piece is moved, update the respective counter
+        if beared:
+            if current_player == 'white':
+                self.counter_white += 1
+            elif current_player == 'black':
+                self.counter_black += 1
