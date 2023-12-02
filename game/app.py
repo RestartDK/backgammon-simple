@@ -168,12 +168,19 @@ class App:
     def reset_position(self, screen, piece):
         #this function will only run if the stack is empty or the player's own color is contained in the stack
         #(otherwise the game will crash due to logic throughout the code)
+        able_to_reset = False
         if piece.colour == 'black' and (len(self.points[0]) == 0 or self.points[0][0].colour == 'black'):
-            x_original, y_original = self.calculate_piece_position(0, len(self.points[0]))
+            x_original, y_original = self.calculate_piece_position(0, len(self.points[0])) 
+            piece.move((x_original, y_original), self.screen) #move piece in UI
+            self.points[0].append(piece) #append piece to the appropriate stack (backend)
+            able_to_reset = True
+
         elif piece.colour == 'white' and (len(self.points[23]) == 0 or self.points[23][0].colour == 'white'): 
-            x_original, y_original = self.calculate_piece_position(23, len(self.points[23]))
-        piece.move((x_original, y_original), self.screen)
-    #TODO: we must append the piece to the original stack and remove from the mid stack(backend) 
+            x_original, y_original = self.calculate_piece_position(23, len(self.points[23])) 
+            piece.move((x_original, y_original), self.screen) #move piece in UI
+            self.points[23].append(piece) #append piece to the appropriate stack (backend)
+            able_to_reset = True
+        return able_to_reset
 
     def change_turn(self):
         # Check to see if turn has ended
@@ -185,9 +192,17 @@ class App:
                 mid_pos = 1
             elif self.current_player == 'white':
                 mid_pos = 0
-            for i in range(len(self.mid[mid_pos])):
-                self.reset_position(self.screen, self.mid[mid_pos][i]) #this returns the ith element in the stack, 
-                #which will get blitted with reset_position()
+            able_to_reset = True
+            while len(self.mid[mid_pos]) != 0 and able_to_reset:
+                piece_to_delete = self.mid[mid_pos].pop() #this takes care of the backend
+                able_to_reset = self.reset_position(self.screen, piece_to_delete) #this returns the ith element in the stack, 
+                #which will get blitted with reset_position() #this also tells us whether we can append the piece based on the logic conditions.
+                #above, we just popped the piece, without checking the conditions to do so, 
+                #so, if the condition is not met, we must reappend it. 
+                if able_to_reset == False:
+                    self.mid[mid_pos].append(piece_to_delete)
+    
+            
     
                 
     
