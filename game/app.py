@@ -1,25 +1,26 @@
-from time import sleep
+import time
 from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
 from game.dice import Button
+from game.bot import Bot
 import math
 import pygame
+
 
 class App:
     def __init__(self):
         # Initialise screen for board
         self.screen_width = 1525
         self.screen_height = 900
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
         self.running = True
-        self.board = BackgammonBoard(self.screen) # Initalize the Backgammon class
-        self.dice = Dice(self.screen) # Initalize the Dice class
-        self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice) # Initalize the Button class
-        self.current_player = 'black'   #TODO: Change this to depend on who starts
-        self.black_counter = 0 #number of black pieces removed from the board
-        self.white_counter = 0 #number of white pieces removed from the board
+        self.board = BackgammonBoard(self.screen)
+        self.dice = Dice(self.screen)
+        self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
+        self.current_player = 'black' 
         self.initalise_pieces()
+        self.bot = Bot(self)
 
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
@@ -27,6 +28,7 @@ class App:
         # Time Complexity is O(1) for both the worst and average case
         # Because the initial number of pieces and their position is always constant
         self.points = [[] for _ in range(24)]
+
         self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
         self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
@@ -36,10 +38,11 @@ class App:
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
 
+        #define a white and black stack in the center (mid) - for the eaten pieces
+        self.mid = [[] for _ in range(2)]
 
         # Calculate positions for each piece
         self.positions = list()
-        # All duplicate width/height add/sub are used due to weird nature of images in pygame
         for point_id, stack in enumerate(self.points):           
             for piece_id, piece in enumerate(stack):
                 # Calculate offset placement
@@ -47,6 +50,10 @@ class App:
                 # Update piece's position
                 piece.move((x_base, y_base), self.screen)
                 self.add_piece(piece)
+    
+    """
+    Calculating movement of piece logic
+    """
     
     def find_nearest_point(self, piece_pos: tuple) -> int | tuple:
         # A simple linear search algorithm that scans through the board to find the nearest point to a piece
@@ -64,6 +71,10 @@ class App:
                 closest_point = (x_base, y_base)
                 closest_index = point_id
 
+        # Check if the piece is moved outside the board for bearing off
+        if piece_pos[0] > self.board.box_width:
+            return -1, closest_point  # Use -1 to indicate bear-off
+
         return closest_index, closest_point
     
     def update_piece_position(self, piece: Piece, new_point_index: int):
@@ -76,11 +87,15 @@ class App:
                 break
 
         # Add piece to the new point
-        # Time Complexity is O(1) in both the worst and average case
-        # As adding an element to the end of the list has a constant time
-        self.points[new_point_index].append(piece)
+        if not piece.beared_off:
+            # Time Complexity is O(1) in both the worst and average case
+            # As adding an element to the end of the list has a constant time
+            self.points[new_point_index].append(piece)
         
     def calculate_piece_position(self, point_id: int, stack_height: int):
+        # Position for bearing off (you can adjust this based on your game design)
+        if point_id == -1:
+            return self.screen_width + 50, self.screen_height // 2
         # The original blit point for the surface of the piece image is centered in the middle top
         x_base = self.board.box_width - (point_id + 1) * self.board.point_width + self.board.point_width // 2
 
@@ -108,6 +123,16 @@ class App:
         # Time Complexity is O(1) in both the worst and average case
         # As such calculations happen at a constant time
         current_point_index = self.find_piece_point_index(piece)
+        
+        # Handle bear-off scenario
+        if new_point_index == -1:
+            if piece.colour == "black":
+                return 24 - current_point_index
+            else:
+                return current_point_index + 1
+        
+        if new_point_index == 24:
+            return new_point_index
         if piece.colour == "black":
             return new_point_index - current_point_index
         else:
@@ -121,7 +146,120 @@ class App:
             if piece in point:
                 return point_index
         return -1
+        
 
+    def restack_pieces_at_point(self, point_index):
+        for stack_index, piece in enumerate(self.points[point_index]):
+            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
+            piece.move((x_base, y_base), self.screen)
+
+    def is_move_valid(self, piece: Piece, new_point_index: int) -> bool:
+        # Check if the new point index is within board limits
+        if not (0 <= new_point_index < 24 or new_point_index == -1):  # -1 for bear-off
+            return False
+
+        # Get the current point index of the piece
+        current_point_index = self.find_piece_point_index(piece)
+
+        # Ensure the piece is moving in the correct direction
+        if piece.colour == 'white' and new_point_index >= current_point_index:
+            return False
+
+        # Check for a blocked point (more than one opposing piece)
+        if new_point_index != -1:  # Exclude bear-off case
+            destination_stack = self.points[new_point_index]
+            if destination_stack:
+                top_piece = destination_stack[-1]
+                if top_piece.colour != piece.colour and len(destination_stack) > 1:
+                    return False
+
+        # Additional rules can be added here (e.g., bearing off logic)
+
+        return True
+
+    
+    """
+    Bearing off logic for end game
+    """ 
+    # Check to see if the player can bear off
+    def can_bear_off(self, color: str):
+        if color == 'black':
+            for i in range(18):  
+                if self.points[i]:
+                    for piece in self.points[i]:
+                        if piece.colour == "black":
+                            return False
+        if color == 'white':
+            for i in range(6, 24):
+                if self.points[i]:
+                    for piece in self.points[i]:
+                        if piece.colour == "white":
+                            return False 
+                        
+        return True
+        
+    def is_valid_bear_off_move(self, current_point_index: int, move_distance: int) -> bool:
+        if self.current_player == 'black':
+            # Check if the piece can be beared off exactly
+            if current_point_index + move_distance == 24:
+                return True
+            # Check for bearing off when the roll is larger than needed
+            elif current_point_index + move_distance > 24:
+                return all(not self.points[i] for i in range(current_point_index + 1, 24))
+        elif self.current_player == 'white':
+            if current_point_index - move_distance == -1:
+                return True
+            elif current_point_index - move_distance < -1:
+                return all(not self.points[i] for i in range(0, current_point_index))
+        return False
+
+    # Bear off the piece and update the board and counters.
+    def bear_off_piece(self, piece: Piece):
+        original_point_index = self.find_piece_point_index(piece)
+        piece.beared_off = True
+        
+        # Remove piece from points (backend) and positions (frontend)
+        self.points[original_point_index].remove(piece)
+        if piece in self.positions:
+            self.positions.remove(piece)
+            
+        self.board.update(piece.colour, True)
+        self.check_win_condition()
+    
+    """
+    Eaten Logic
+    """
+    def can_be_eaten(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
+        correct_stack = False
+        eat = False
+
+        if len(self.points[new_point_index]) == 0:  # stack that we're moving the piece into already doesn't have pieces within
+            correct_stack = True
+        elif self.points[new_point_index][0].colour == piece.colour:  # check that the element in the first stack equals the player's color
+            correct_stack = True
+        elif len(self.points[new_point_index]) == 1:
+            eat = True
+            correct_stack = True
+
+        if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            if eat:
+                mid_len = 0  # needed to calculate the position of the following pieces in eat()
+                mid_pos = 0  # stack index
+                if piece.colour == 'black':
+                    mid_pos = 0
+                    mid_len = len(self.mid[0])
+                else:
+                    mid_pos = 1  # stack index
+                    mid_len = len(self.mid[1])
+                self.points[new_point_index][0].eat(self.screen, mid_len)  # moving the image
+                self.mid[mid_pos].append(self.points[new_point_index].pop())
+            return True
+        else:
+            return False
+
+    '''
+    Handling all movement and events in the game (including eaten functionality)
+    '''
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         # Time Complexity is O(n) both the worst and average case, where n is the average number of pieces
         # Because it has to check whether the movement is correct or not, otherwise moving it back to its original place
@@ -129,35 +267,30 @@ class App:
         # Tries moving a piece to a new position based on the value shown in the dice
         original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
+        # Check for bearing off
+        if self.can_bear_off(self.current_player):
+            if self.is_valid_bear_off_move(original_point_index, move_distance):
+                # To deal non exact bearing moves
+                dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
+                if dice_value_to_remove is not None:
+                    # Bear off the piece
+                    self.bear_off_piece(piece)
+                    self.dice.current_face_values.remove(dice_value_to_remove)
+                    self.change_turn()
+                    return True
 
-        # If moving the piece is successful, switch turns
-        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+        
+        if self.can_be_eaten(piece, new_point_index, move_distance):
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
             return True
-        else:
-            # Move the piece back to its original position
-            self.update_piece_position(piece, original_point_index)
-            self.restack_pieces_at_point(original_point_index)
-            return False
-
-    def restack_pieces_at_point(self, point_index):
-        # Resets the position of the pieces according to the board's layout
-        # Time Complexity is O(n) both the worst and average case, where n is the average number of pieces
-        # Because it iterates through every piece once with a constant runnig time
-        for stack_index, piece in enumerate(self.points[point_index]):
-            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
-            piece.move((x_base, y_base), self.screen)
-
-
-    def change_turn(self):
-        # Time Complexity is O(1) because it has a constant running time
-        # Check to see if turn has ended
-        if not self.dice.get_current_face_values():
-            # Logic to end the current player's turn and switch to the other player
-            self.button.set_clicked(False)
-            self.current_player = 'white' if self.current_player == 'black' else 'black'
+        
+        
+        # Move the piece back to its original position if no other valid move
+        self.update_piece_position(piece, original_point_index)
+        self.restack_pieces_at_point(original_point_index)
+        return False
             
     def handle_piece_movement(self, piece: Piece, new_point_index: int):
         # Handles the movement of a piece to a new point, updating its position 
@@ -177,11 +310,68 @@ class App:
         for piece in self.positions:
             if piece.handle_event(event, self, self.dice):
                 break
-        # Handle button events
+            
         self.button.handle_event(event)
-        # Handle dice events
         self.dice.handle_event(event)
+
+    def restack_pieces_at_point(self, point_index):
+        for stack_index, piece in enumerate(self.points[point_index]):
+            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
+            piece.move((x_base, y_base), self.screen)
+    #when a piece is eaten, it goes to the middle stack, and when it
+    #becomes the other player's turn, the piece is "reset" to the first stack of that color
+
+    def reset_position(self, screen, piece):
+        #this function will only run if the stack is empty or the player's own color is contained in the stack
+        #(otherwise the game will crash due to logic throughout the code)
+        able_to_reset = False
+        if piece.colour == 'black' and (len(self.points[0]) == 0 or self.points[0][0].colour == 'black'):
+            x_original, y_original = self.calculate_piece_position(0, len(self.points[0])) 
+            piece.move((x_original, y_original), self.screen) #move piece in UI
+            self.points[0].append(piece) #append piece to the appropriate stack (backend)
+            able_to_reset = True
+
+        elif piece.colour == 'white' and (len(self.points[23]) == 0 or self.points[23][0].colour == 'white'): 
+            x_original, y_original = self.calculate_piece_position(23, len(self.points[23])) 
+            piece.move((x_original, y_original), self.screen) #move piece in UI
+            self.points[23].append(piece) #append piece to the appropriate stack (backend)
+            able_to_reset = True
+        return able_to_reset
+
+    """
+    Turn based and winning logic
+    """
+    def change_turn(self):
+        # Check to see if turn has ended
+        if not self.dice.get_current_face_values():
+            # Logic to end the current player's turn and switch to the other player
+            self.button.set_clicked(False)
+            self.current_player = 'white' if self.current_player == 'black' else 'black'
+            if self.current_player == 'black':
+                mid_pos = 1
+            elif self.current_player == 'white':
+                mid_pos = 0
+            able_to_reset = True
+            while len(self.mid[mid_pos]) != 0 and able_to_reset:
+                piece_to_delete = self.mid[mid_pos].pop() #this takes care of the backend
+                able_to_reset = self.reset_position(self.screen, piece_to_delete) #this returns the ith element in the stack, 
+                #which will get blitted with reset_position() #this also tells us whether we can append the piece based on the logic conditions.
+                #above, we just popped the piece, without checking the conditions to do so, 
+                #so, if the condition is not met, we must reappend it. 
+                if able_to_reset == False:
+                    self.mid[mid_pos].append(piece_to_delete)
+
+    def check_win_condition(self):
+        if self.board.counter_white == 15:  # Assuming 15 pieces per player
+            print("White wins!")
+            self.running = False
+        elif self.board.counter_black == 15:
+            print("Black wins!")
+            self.running = False
     
+    """
+    Rendering all the assets in the game
+    """
     def render_all_assets(self):
         # Time Complexity is O(m) for both worst and average case, where m is the number of pieces
         # Because it iterates through the pieces, and renders and updates each one
@@ -208,51 +398,71 @@ class App:
         for piece in self.positions:
             piece.update(self.screen)
             piece.render(self.screen)
-        
-        # Update the counter for the number of pieces beared off
-        self.board.update(self.current_player)
 
         pygame.display.flip()
     
+    
+    """
+    Pure logic helper functions
+    """
     def add_piece(self, piece: Piece):
         # Adds a piece to the end of the positions list
         # Therefore it has a time complexity of O(1)
         self.positions.append(piece)
-
-    def remove_piece(self, point):
-        # Uses the data structure Stacks in order to pop, or remove a piece from its position
-        # Therefore, it has a time complexity of O(1)
-        return self.positions[point].pop() if self.positions[point] else None
         
-    
+    """
+    Bot Logic
+    """
+    def execute_bot_move(self):
+        while self.dice.get_current_face_values():
+            piece, new_point_index = self.bot.select_move()
+
+            # If a valid move is available, execute it
+            if piece is not None and new_point_index is not None:
+                move_successful = self.attempt_piece_move(piece, new_point_index)
+
+                # If the move was successful, update the piece's visual position
+                if move_successful:
+                    new_position = self.calculate_piece_position(new_point_index, len(self.points[new_point_index]))
+                    piece.move(new_position, self.screen)
+
+                    # Restack pieces at the new point to ensure correct visual stacking
+                    self.restack_pieces_at_point(new_point_index)
+
+                    # Add a delay to make the bot's move less instantaneous
+                    time.sleep(3)  # Delay in seconds
+
+                    # Process any events during the delay to keep the game responsive
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            self.running = False
+                            return
+                else:
+                    break
+            else:
+                break
+
+                
+    """
+    Game logic loop
+    """
     def start(self):
         # Initializes all the pygame modules
         pygame.init()
-    
-    def counter(self, piece: Piece, new_position):
-        # Updates the counter for the pieces for both players (black and white)
-        # and increments them when they are removed from the board
-        # Time complexity is O(k), where k is the number of iterations
-        # Because it iterates through the list of points to find the piece needed
-        for point in self.points:
-            if piece in point:
-                point.remove(piece)
-                break
-        if new_position == -1: 
-            if piece.colour == "black":
-                self.black_counter += 1
-            else:
-                self.white_counter += 1
-
+        
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                
+                    
                 self.handle_all_events(event)
 
-            # Render all the assets in the game
+            if self.current_player == 'white':  # Replace 'bot_color' with the bot's color
+                self.execute_bot_move()
+
+            # Rentder all the assets in the game
             self.render_all_assets()
+            self.check_win_condition()
 
         # Quit Pygame when the main loop ends
         pygame.quit()

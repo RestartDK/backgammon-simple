@@ -38,7 +38,6 @@ class Dice:
                 # To check whether the time passed since the roll exceeds that of the roll duration
                 # if True, finalize the dice roll
                 self.set_rolling(False)
-                self.finalize_roll()
             else:
                 # Change the dice faces at each update to create the rolling effect
                 self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]
@@ -79,6 +78,18 @@ class Dice:
         # This function checks if the dice is rolling
         if self.rolling:
             self.roll()
+    
+    def get_closest_dice_value(self, move_distance: int) -> int:
+        # Find the dice value closest to the move_distance
+        closest_value = None
+        min_difference = float('inf')
+        for value in self.get_current_face_values():
+            difference = abs(move_distance - value)
+            if difference < min_difference:
+                min_difference = difference
+                closest_value = value
+        return closest_value
+
     
     def set_rolling(self, rolling: bool):
         self.rolling = rolling
