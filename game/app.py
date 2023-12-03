@@ -25,7 +25,7 @@ class App:
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
         self.points = [[] for _ in range(24)]
-        
+
         self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
         self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
@@ -34,6 +34,9 @@ class App:
         self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+
+        #define a white and black stack in the center (mid) - for the eaten pieces
+        self.mid = [[] for _ in range(2)]
 
         # Calculate positions for each piece
         self.positions = list()
@@ -206,32 +209,44 @@ class App:
             
         self.board.update(piece.colour, True)
         self.check_win_condition()
-
-    """
-    Turn based and winning logic
-    """
-    def change_turn(self):
-        # Check to see if turn has ended
-        if not self.dice.get_current_face_values():
-            # Logic to end the current player's turn and switch to the other player
-            self.button.set_clicked(False)
-            self.current_player = 'white' if self.current_player == 'black' else 'black'
-        
-    def check_win_condition(self):
-        if self.board.counter_white == 15:  # Assuming 15 pieces per player
-            print("White wins!")
-            self.running = False
-        elif self.board.counter_black == 15:
-            print("Black wins!")
-            self.running = False
     
     """
-    Handling all movement and events in the game
+    Eaten Logic
     """
+    def can_be_eaten(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
+        correct_stack = False
+        eat = False
+
+        if len(self.points[new_point_index]) == 0:  # stack that we're moving the piece into already doesn't have pieces within
+            correct_stack = True
+        elif self.points[new_point_index][0].colour == piece.colour:  # check that the element in the first stack equals the player's color
+            correct_stack = True
+        elif len(self.points[new_point_index]) == 1:
+            eat = True
+            correct_stack = True
+
+        if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            if eat:
+                mid_len = 0  # needed to calculate the position of the following pieces in eat()
+                mid_pos = 0  # stack index
+                if piece.colour == 'black':
+                    mid_pos = 0
+                    mid_len = len(self.mid[0])
+                else:
+                    mid_pos = 1  # stack index
+                    mid_len = len(self.mid[1])
+                self.points[new_point_index][0].eat(self.screen, mid_len)  # moving the image
+                self.mid[mid_pos].append(self.points[new_point_index].pop())
+            return True
+        else:
+            return False
+
+    '''
+    Handling all movement and events in the game (including eaten functionality)
+    '''
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
-
         # Check for bearing off
         if self.can_bear_off(self.current_player):
             if self.is_valid_bear_off_move(original_point_index, move_distance):
@@ -244,8 +259,8 @@ class App:
                     self.change_turn()
                     return True
 
-        # Attempting normal movement in game
-        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+        
+        if self.can_be_eaten(piece, new_point_index, move_distance):
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
@@ -273,7 +288,61 @@ class App:
             
         self.button.handle_event(event)
         self.dice.handle_event(event)
-    
+
+    def restack_pieces_at_point(self, point_index):
+        for stack_index, piece in enumerate(self.points[point_index]):
+            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
+            piece.move((x_base, y_base), self.screen)
+    #when a piece is eaten, it goes to the middle stack, and when it
+    #becomes the other player's turn, the piece is "reset" to the first stack of that color
+
+    def reset_position(self, screen, piece):
+        #this function will only run if the stack is empty or the player's own color is contained in the stack
+        #(otherwise the game will crash due to logic throughout the code)
+        able_to_reset = False
+        if piece.colour == 'black' and (len(self.points[0]) == 0 or self.points[0][0].colour == 'black'):
+            x_original, y_original = self.calculate_piece_position(0, len(self.points[0])) 
+            piece.move((x_original, y_original), self.screen) #move piece in UI
+            self.points[0].append(piece) #append piece to the appropriate stack (backend)
+            able_to_reset = True
+
+        elif piece.colour == 'white' and (len(self.points[23]) == 0 or self.points[23][0].colour == 'white'): 
+            x_original, y_original = self.calculate_piece_position(23, len(self.points[23])) 
+            piece.move((x_original, y_original), self.screen) #move piece in UI
+            self.points[23].append(piece) #append piece to the appropriate stack (backend)
+            able_to_reset = True
+        return able_to_reset
+
+    """
+    Turn based and winning logic
+    """
+    def change_turn(self):
+        # Check to see if turn has ended
+        if not self.dice.get_current_face_values():
+            # Logic to end the current player's turn and switch to the other player
+            self.button.set_clicked(False)
+            self.current_player = 'white' if self.current_player == 'black' else 'black'
+            if self.current_player == 'black':
+                mid_pos = 1
+            elif self.current_player == 'white':
+                mid_pos = 0
+            able_to_reset = True
+            while len(self.mid[mid_pos]) != 0 and able_to_reset:
+                piece_to_delete = self.mid[mid_pos].pop() #this takes care of the backend
+                able_to_reset = self.reset_position(self.screen, piece_to_delete) #this returns the ith element in the stack, 
+                #which will get blitted with reset_position() #this also tells us whether we can append the piece based on the logic conditions.
+                #above, we just popped the piece, without checking the conditions to do so, 
+                #so, if the condition is not met, we must reappend it. 
+                if able_to_reset == False:
+                    self.mid[mid_pos].append(piece_to_delete)
+
+    def check_win_condition(self):
+        if self.board.counter_white == 15:  # Assuming 15 pieces per player
+            print("White wins!")
+            self.running = False
+        elif self.board.counter_black == 15:
+            print("Black wins!")
+            self.running = False
     
     """
     Rendering all the assets in the game
