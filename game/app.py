@@ -126,6 +126,7 @@ class App:
             if piece in point:
                 return point_index
         return -1
+    
     """
     Bearing off logic for end game
     """ 
@@ -174,6 +175,9 @@ class App:
         self.board.update(piece.colour, True)
         self.check_win_condition()
     
+    '''
+    Handling all movement and events in the game (including eaten functionality)
+    '''
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
@@ -223,8 +227,15 @@ class App:
             self.update_piece_position(piece, original_point_index)
             self.restack_pieces_at_point(original_point_index)
             return False
-
-
+    
+    def handle_all_events(self, event):
+        # Handling events for each piece
+        for piece in self.positions:
+            if piece.handle_event(event, self, self.dice):
+                break
+            
+        self.button.handle_event(event)
+        self.dice.handle_event(event)
 
     def restack_pieces_at_point(self, point_index):
         for stack_index, piece in enumerate(self.points[point_index]):
@@ -232,6 +243,7 @@ class App:
             piece.move((x_base, y_base), self.screen)
     #when a piece is eaten, it goes to the middle stack, and when it
     #becomes the other player's turn, the piece is "reset" to the first stack of that color
+
     def reset_position(self, screen, piece):
         #this function will only run if the stack is empty or the player's own color is contained in the stack
         #(otherwise the game will crash due to logic throughout the code)
@@ -249,7 +261,9 @@ class App:
             able_to_reset = True
         return able_to_reset
 
-
+    """
+    Turn based and winning logic
+    """
     def change_turn(self):
         # Check to see if turn has ended
         if not self.dice.get_current_face_values():
@@ -269,7 +283,7 @@ class App:
                 #so, if the condition is not met, we must reappend it. 
                 if able_to_reset == False:
                     self.mid[mid_pos].append(piece_to_delete)
-                    
+
     def check_win_condition(self):
         if self.board.counter_white == 15:  # Assuming 15 pieces per player
             print("White wins!")
@@ -277,16 +291,6 @@ class App:
         elif self.board.counter_black == 15:
             print("Black wins!")
             self.running = False
-    
-    def handle_all_events(self, event):
-        # Handling events for each piece
-        for piece in self.positions:
-            if piece.handle_event(event, self, self.dice):
-                break
-            
-        self.button.handle_event(event)
-        self.dice.handle_event(event)
-    
     
     """
     Rendering all the assets in the game
