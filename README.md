@@ -7,12 +7,9 @@ For our project, we created a simple Backgammon using the Python library 'pygame
 
 # 🌟 Algorithms and Data Structures Used
 We implemented many algorithms and data structures in our Backgammon game to make it functional, those include:
-1. Stacks (our main data structure)
-   Used in order to push and pop pieces into and from their position based on the number on the rolled dice
-2. Searching Algorithms
-   To find the nearest point to a piece after calculating the distance needed to move it based on the rolled dice
-3. Depth First Search (Data Structure)
-   Used by the bot algorithm, which always it to look for possible moves and make decisions by visiting multiple positions on the board, then backtracking, to determine which is more favorable to allow it to win the game
+1. Stacks (our main data structure): Used in order to push and pop pieces into and from their position based on the number on the rolled dice
+2. Searching Algorithms: To find the nearest point to a piece after calculating the distance needed to move it based on the rolled dice
+3. Depth First Search (Data Structure): Used by the bot algorithm, which always it to look for possible moves and make decisions by visiting multiple positions on the board, then backtracking, to determine which is more favorable to allow it to win the game
 4. Dictionaries (Data Structure)
 
 
