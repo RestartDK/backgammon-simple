@@ -11,10 +11,12 @@ We implemented many algorithms and data structures in our Backgammon game to mak
    Used in order to push and pop pieces into and from their position based on the number on the rolled dice
 2. Searching Algorithms
    To find the nearest point to a piece after calculating the distance needed to move it based on the rolled dice
-3. Dynamic Programming (?)
+3. Depth First Search (Data Structure)
+   Used by the bot algorithm, which always it to look for possible moves and make decisions by visiting multiple positions on the board, then backtracking, to determine which is more favorable to allow it to win the game
+4. Dictionaries (Data Structure)
 
 
 # ❓ How to Setup
 
 - Run `pip install -r requirements.txt` to install dependencies, as pygame has to be installed in order for the game to run
-- Run `python main.py` to start the application
+- Run `python main.py` or 'python3 main.py' to start the application, depending on the version of Python available on your software
