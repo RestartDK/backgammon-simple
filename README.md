@@ -9,11 +9,28 @@ For our project, we created a simple Backgammon using the Python library 'pygame
 We implemented many algorithms and data structures in our Backgammon game to make it functional, those include:
 1. Stacks (our main data structure): Used in order to push and pop pieces into and from their position based on the number on the rolled dice
 2. Searching Algorithms: To find the nearest point to a piece after calculating the distance needed to move it based on the rolled dice
-3. Depth First Search (Data Structure): Used by the bot algorithm, which always it to look for possible moves and make decisions by visiting multiple positions on the board, then backtracking, to determine which is more favorable to allow it to win the game
+3. Depth First Search (Data Structure): Used by the bot algorithm, which always it to look for possible moves and make decisions by visiting multiple positions on the board, then backtracking, to determine which is more favorable to allow it to win the game🛠️ 
 4. Dictionaries (Data Structure)
 
+# 🛠️ Techincal Specifications
+The main programming language used was Python, and the following Python elements were used:
+1. pygame Library
+2. Classes
+3. Conditional statements
+4. Loops
 
 # ❓ How to Setup
+To install all dependencies, and to make sure pygame is installed, run the following command in your terminal
 
-- Run `pip install -r requirements.txt` to install dependencies, as pygame has to be installed in order for the game to run
-- Run `python main.py` or 'python3 main.py' to start the application, depending on the version of Python available on your software
+```pip install -r requirements.txt```
+
+To run the game, enter the following in the terminal
+
+```python main.py```
+
+If any errors occur while running the previous command, run the following in terminal:
+
+```python3 main.py```
+
+(Depends on the version of Python on your computer)
+
