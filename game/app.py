@@ -3,6 +3,7 @@ from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
 from game.dice import Button
+from game.endgameScreen import endgameScreen
 import math
 import pygame
 
@@ -223,7 +224,6 @@ class App:
         # Uses the data structure Stacks in order to pop, or remove a piece from its position
         # Therefore, it has a time complexity of O(1)
         return self.positions[point].pop() if self.positions[point] else None
-        
     
     def start(self):
         # Initializes all the pygame modules
@@ -256,3 +256,10 @@ class App:
 
         # Quit Pygame when the main loop ends
         pygame.quit()
+    
+    def end_game(self, winner):
+        # Displays the end game screen that shows that the game has ended and displays who the winner is
+        # Time complexity of O(1) as this will always have a constant running time
+        end_screen = endgameScreen(winner)
+        self.end_game('black' if self.black_counter > self.white_counter else 'white')
+        end_screen.start()
