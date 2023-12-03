@@ -175,6 +175,37 @@ class App:
         self.board.update(piece.colour, True)
         self.check_win_condition()
     
+    """
+    Eaten Logic
+    """
+    def can_be_eaten(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
+        correct_stack = False
+        eat = False
+
+        if len(self.points[new_point_index]) == 0:  # stack that we're moving the piece into already doesn't have pieces within
+            correct_stack = True
+        elif self.points[new_point_index][0].colour == piece.colour:  # check that the element in the first stack equals the player's color
+            correct_stack = True
+        elif len(self.points[new_point_index]) == 1:
+            eat = True
+            correct_stack = True
+
+        if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            if eat:
+                mid_len = 0  # needed to calculate the position of the following pieces in eat()
+                mid_pos = 0  # stack index
+                if piece.colour == 'black':
+                    mid_pos = 0
+                    mid_len = len(self.mid[0])
+                else:
+                    mid_pos = 1  # stack index
+                    mid_len = len(self.mid[1])
+                self.points[new_point_index][0].eat(self.screen, mid_len)  # moving the image
+                self.mid[mid_pos].append(self.points[new_point_index].pop())
+            return True
+        else:
+            return False
+
     '''
     Handling all movement and events in the game (including eaten functionality)
     '''
@@ -194,33 +225,10 @@ class App:
                     return True
 
         
-        correct_stack = False
-        eat = False
-
-        if len(self.points[new_point_index]) == 0: #stack that we're moving the piece into already doesn't have pieces within
-            correct_stack = True
-        elif self.points[new_point_index][0].colour == piece.colour: #check that the element in the first stack equals the player's color
-            correct_stack = True
-        elif len(self.points[new_point_index]) == 1:
-            eat = True
-            correct_stack = True
-            
-        if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
-            if eat:
-                mid_len = 0 #needed to calculate the position of the following pieces in eat() 
-                mid_pos = 0 #stack index
-                if piece.colour == 'black':
-                    mid_pos = 0 
-                    mid_len = len(self.mid[0])
-                else:
-                    mid_pos = 1 #stack index
-                    mid_len = len(self.mid[1])
-                self.points[new_point_index][0].eat(self.screen, mid_len) #moving the image
-                self.mid[mid_pos].append(self.points[new_point_index].pop())
+        if self.can_be_eaten(piece, new_point_index, move_distance):
             self.update_piece_position(piece, new_point_index)
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
-
             return True
         else:
             # Move the piece back to its original position
