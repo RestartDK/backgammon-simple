@@ -1,5 +1,4 @@
 # This class develops and generates the actual backgammon board using the Python library pygame
-import time
 import pygame
 
 class BackgammonBoard:
