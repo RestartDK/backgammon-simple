@@ -1,5 +1,6 @@
 # 🎲 Backgammon Game
-(put gif here)
+![Backgammon](https://github.com/RestartDK/backgammon-simple/assets/149888782/813d64bc-f80f-4185-aab2-fc82432d5487)
+
 
 For our project, we created a simple Backgammon using the Python library 'pygame' for the visuals of the game. The rules of backgammon are simple, the goal of the game is for each player to remove all their pieces off the board. Each player has 15 pieces placed in specific positions, the player then roles two six-sided dice and moves their pieces accordingly. Once the player's pieces all reach the end of the board, they can start removing their pieces, the first person to remove all their pieces, wins.
 
