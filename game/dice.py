@@ -29,8 +29,8 @@ class Dice:
             time_since_roll = current_time - self.roll_start_time
 
             if time_since_roll > self.roll_duration:
-                self.set_rolling(False)
                 self.finalize_roll()
+                self.set_rolling(False)
             else:
                 # Change the dice faces at each update to create the rolling effect
                 self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]

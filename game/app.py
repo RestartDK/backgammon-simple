@@ -385,22 +385,15 @@ class App:
     Bot Logic
     """
     def execute_bot_move(self):
-        print("Bot's turn with dice values:", self.dice.get_current_face_values())
         while self.dice.get_current_face_values():
             piece, new_point_index = self.bot.select_move()
 
-            # Debugging output
-            print(f"Bot selected move: Move to {new_point_index}")
-
             # If a valid move is available, execute it
             if piece is not None and new_point_index is not None:
-                print("Attempting to move piece...")
                 move_successful = self.attempt_piece_move(piece, new_point_index)
-                print(move_successful) 
 
                 # If the move was successful, update the piece's visual position
                 if move_successful:
-                    print("Move was successful. Updating position...")
                     new_position = self.calculate_piece_position(new_point_index, len(self.points[new_point_index]))
                     piece.move(new_position, self.screen)
 
@@ -416,10 +409,8 @@ class App:
                             self.running = False
                             return
                 else:
-                    print("Move was not successful. Breaking out of loop.")
                     break
             else:
-                print("No valid move available. Breaking out of loop.")
                 break
 
                 
