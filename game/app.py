@@ -1,9 +1,12 @@
+import time
 from game.backgammonboard import BackgammonBoard
 from game.dice import Dice
 from game.piece import Piece
 from game.dice import Button
+from game.bot import Bot
 import math
 import pygame
+
 
 class App:
     def __init__(self):
@@ -17,6 +20,7 @@ class App:
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
         self.current_player = 'black' 
         self.initalise_pieces()
+        self.bot = Bot(self)
 
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
@@ -126,6 +130,37 @@ class App:
             if piece in point:
                 return point_index
         return -1
+        
+
+    def restack_pieces_at_point(self, point_index):
+        for stack_index, piece in enumerate(self.points[point_index]):
+            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
+            piece.move((x_base, y_base), self.screen)
+
+    def is_move_valid(self, piece: Piece, new_point_index: int) -> bool:
+        # Check if the new point index is within board limits
+        if not (0 <= new_point_index < 24 or new_point_index == -1):  # -1 for bear-off
+            return False
+
+        # Get the current point index of the piece
+        current_point_index = self.find_piece_point_index(piece)
+
+        # Ensure the piece is moving in the correct direction
+        if piece.colour == 'white' and new_point_index >= current_point_index:
+            return False
+
+        # Check for a blocked point (more than one opposing piece)
+        if new_point_index != -1:  # Exclude bear-off case
+            destination_stack = self.points[new_point_index]
+            if destination_stack:
+                top_piece = destination_stack[-1]
+                if top_piece.colour != piece.colour and len(destination_stack) > 1:
+                    return False
+
+        # Additional rules can be added here (e.g., bearing off logic)
+
+        return True
+
     
     """
     Bearing off logic for end game
@@ -230,11 +265,20 @@ class App:
             self.dice.current_face_values.remove(move_distance)
             self.change_turn()
             return True
-        else:
-            # Move the piece back to its original position
-            self.update_piece_position(piece, original_point_index)
-            self.restack_pieces_at_point(original_point_index)
-            return False
+        
+        
+        # Move the piece back to its original position if no other valid move
+        self.update_piece_position(piece, original_point_index)
+        self.restack_pieces_at_point(original_point_index)
+        return False
+            
+    def handle_piece_movement(self, piece: Piece, new_point_index: int):
+        move_distance = self.calculate_move_distance(piece, new_point_index)
+        if move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
+            piece.move_to_point(new_point_index, self.screen)
+            self.update_piece_position(piece, new_point_index)
+            self.dice.current_face_values.remove(move_distance)
+            self.change_turn()
     
     def handle_all_events(self, event):
         # Handling events for each piece
@@ -337,22 +381,57 @@ class App:
     def add_piece(self, piece: Piece):
         self.positions.append(piece)
         
-    
+    """
+    Bot Logic
+    """
+    def execute_bot_move(self):
+        while self.dice.get_current_face_values():
+            piece, new_point_index = self.bot.select_move()
+
+            # If a valid move is available, execute it
+            if piece is not None and new_point_index is not None:
+                move_successful = self.attempt_piece_move(piece, new_point_index)
+
+                # If the move was successful, update the piece's visual position
+                if move_successful:
+                    new_position = self.calculate_piece_position(new_point_index, len(self.points[new_point_index]))
+                    piece.move(new_position, self.screen)
+
+                    # Restack pieces at the new point to ensure correct visual stacking
+                    self.restack_pieces_at_point(new_point_index)
+
+                    # Add a delay to make the bot's move less instantaneous
+                    time.sleep(3)  # Delay in seconds
+
+                    # Process any events during the delay to keep the game responsive
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            self.running = False
+                            return
+                else:
+                    break
+            else:
+                break
+
+                
     """
     Game logic loop
     """
     def start(self):
         # Initializes all the pygame modules
         pygame.init()
-
+        
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                
+                    
                 self.handle_all_events(event)
 
-            # Render all the assets in the game
+            if self.current_player == 'white':  # Replace 'bot_color' with the bot's color
+                self.execute_bot_move()
+
+            # Rentder all the assets in the game
             self.render_all_assets()
             self.check_win_condition()
 
