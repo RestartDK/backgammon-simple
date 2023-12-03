@@ -65,13 +65,14 @@ class Piece:
         return d <= self.image.get_width()/2
     
     # Handle piece being eaten
-    def eaten(self):
+    def eat(self, screen, mid_len):
         self.eaten = True
 
-        if self.black:
-            self.rect.center = (self.screen.get_width() // 2, self.screen.get_height() - self.image.get_height() // 2)
+        if self.colour == "black":
+            self.rect.center = ((self.screen.get_width() // 2) - 0.08*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * mid_len)
         else:
-            self.rect.center = (self.screen.get_width()  // 2, self.screen.get_height() - 3 * self.image.get_height() // 2)
+            self.rect.center = ((self.screen.get_width()  // 2)- 0.04*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * mid_len) 
+        screen.blit(self.image, self.rect.center)
 
     def handle_event(self, event, app, dice: Dice):
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
@@ -83,6 +84,9 @@ class Piece:
                 self.dragging = False
                 nearest_point_index, nearest_point = app.find_nearest_point(self.rect.center)
                 if app.attempt_piece_move(self, nearest_point_index):
+                    self.move(nearest_point, self.screen)
+                    app.update_piece_position(self, nearest_point_index)
                     if not self.beared_off:
                         self.move(nearest_point, self.screen)
                         app.update_piece_position(self, nearest_point_index)
+            
