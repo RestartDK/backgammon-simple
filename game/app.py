@@ -4,6 +4,7 @@ from game.piece import Piece
 from game.dice import Button
 import math
 import pygame
+from game.bot import BackgammonBot
 
 class App:
     def __init__(self):
@@ -17,6 +18,7 @@ class App:
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
         self.current_player = 'black' 
         self.initalise_pieces()
+        self.bot = BackgammonBot(self)
 
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
@@ -285,7 +287,35 @@ class App:
     def add_piece(self, piece: Piece):
         self.positions.append(piece)
         
-    
+    """
+    Bot Logic
+    """
+    def execute_bot_move(self):
+            while self.dice.get_current_face_values():
+                piece, new_point_index = self.bot.select_move()
+
+                # If a valid move is available, execute it
+                if piece is not None and new_point_index is not None:
+                    move_successful = self.attempt_piece_move(piece, new_point_index)
+
+                    # If the move was successful, update the piece's visual position
+                    if move_successful:
+                        new_position = self.calculate_piece_position(new_point_index, len(self.points[new_point_index]))
+                        piece.move(new_position, self.screen)
+
+                        # Restack pieces at the new point to ensure correct visual stacking
+                        self.restack_pieces_at_point(new_point_index)
+
+                    # If the move was not successful, break the loop to avoid infinite execution
+                    else:
+                        break
+                else:
+                    # No valid move available, break the loop
+                    break
+
+            # After executing moves, if there are no more dice values left, change the turn
+            if not self.dice.get_current_face_values():
+                self.change_turn()
     """
     Game logic loop
     """
@@ -299,8 +329,13 @@ class App:
                     self.running = False
                 
                 self.handle_all_events(event)
+            print(self.current_player)
+            # Bot makes its move if it's the bot's turn
+            if self.current_player == 'white':  
+                self.execute_bot_move()
 
-            # Render all the assets in the game
+
+            # Rentder all the assets in the game
             self.render_all_assets()
             self.check_win_condition()
 
