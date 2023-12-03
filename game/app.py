@@ -16,7 +16,7 @@ class App:
         self.board = BackgammonBoard(self.screen)
         self.dice = Dice(self.screen)
         self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
-        self.current_player = starting_player  #TODO: Change this to depend on who starts
+        self.current_player = starting_player  
         self.initalise_pieces()
 
     def initalise_pieces(self):
@@ -198,5 +198,4 @@ class App:
             # Render all the assets in the game
             self.render_all_assets()
 
-        # Quit Pygame when the main loop ends
         pygame.quit()
