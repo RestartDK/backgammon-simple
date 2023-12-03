@@ -387,7 +387,6 @@ class App:
     def execute_bot_move(self):
         print("Bot's turn with dice values:", self.dice.get_current_face_values())
         while self.dice.get_current_face_values():
-            time.sleep(5)
             piece, new_point_index = self.bot.select_move()
 
             # Debugging output
@@ -407,6 +406,15 @@ class App:
 
                     # Restack pieces at the new point to ensure correct visual stacking
                     self.restack_pieces_at_point(new_point_index)
+
+                    # Add a delay to make the bot's move less instantaneous
+                    time.sleep(3)  # Delay in seconds
+
+                    # Process any events during the delay to keep the game responsive
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            self.running = False
+                            return
                 else:
                     print("Move was not successful. Breaking out of loop.")
                     break
@@ -421,12 +429,12 @@ class App:
     def start(self):
         # Initializes all the pygame modules
         pygame.init()
-
+        
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                
+                    
                 self.handle_all_events(event)
 
             if self.current_player == 'white':  # Replace 'bot_color' with the bot's color
