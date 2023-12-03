@@ -18,6 +18,8 @@ class Piece:
     
     # Generate and scale image pieces
     def generate_piece(self):
+        # Time Complexity of O(1) for worst and average case
+        # As the size and number of images for each piece is constant
         self.image = pygame.image.load(
             f"assets/images/{self.colour}-piece.png")
         self.image = pygame.transform.smoothscale(
@@ -28,6 +30,8 @@ class Piece:
             screen.blit(self.image, self.rect)
 
     def update(self, screen):
+        # Time Complexity of O(1) for worst and average case (as well as for the render function)
+        # Because they have a constant running time
         if self.dragging:
             pos = pygame.mouse.get_pos()
             self.rect.center = (pos[0] + self.offset[0],
@@ -35,10 +39,14 @@ class Piece:
         screen.blit(self.image, self.rect)
 
     def move(self, pos: tuple, screen):
+        # Involves moving the piece
+        # Time complexity of O(1) as it has a constant running time
         self.rect.center = (pos[0], pos[1])
         screen.blit(self.image, self.rect)
     
     def move_dice(self, dice_value: list, app):
+        # Involves moving the piece based on the value of the dice
+        # Time complexity of O(1) because it consist of basic arithmetic operations
         current_point = app.find_piece_point_index(self)
         if self.colour == "black":
             new_point = current_point + dice_value
@@ -55,6 +63,8 @@ class Piece:
         return True
 
     def criclecolide(self, pos):
+        # Checks whether a given point collides with the circular shape of the piece
+        # Therefore it has a time complexity of O(1), as it has a constant running time
         if not self.rect.collidepoint(pos):
             return False
 
@@ -69,12 +79,14 @@ class Piece:
         self.eaten = True
 
         if self.colour == "black":
-            self.rect.center = ((self.screen.get_width() // 2) - 0.08*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * mid_len)
+            self.rect.center = ((self.screen.get_width() // 2) - 0.08*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * self.image.get_height() // 2)
         else:
-            self.rect.center = ((self.screen.get_width()  // 2)- 0.04*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * mid_len) 
+            self.rect.center = ((self.screen.get_width()  // 2)- 0.04*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * self.image.get_height() // 2) 
         screen.blit(self.image, self.rect.center)
 
     def handle_event(self, event, app, dice: Dice):
+        # Handles mouse events of the piece, suhc as dragging the piece
+        # Time complexity is O(1) because it has a constant running time
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.criclecolide(event.pos):
             self.offset = (self.rect.center[0] - event.pos[0], self.rect.center[1] - event.pos[1])
             self.dragging = True
