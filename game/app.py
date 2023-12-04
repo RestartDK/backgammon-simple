@@ -335,7 +335,6 @@ class App:
                 return True
             
             if not self.eligable_to_move_from_middle(piece, new_point_index):
-                print("Turn has been changed.")
                 self.change_turn()
 
         #Move the piece back to its original position if no other valid move 
