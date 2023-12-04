@@ -1,51 +1,61 @@
 from random import choice
 
-
 class Bot:
     def __init__(self, app):
-        self.app = app  # The App instance for accessing game state and methods
+        self.app = app
 
     def generate_moves(self):
         valid_moves = {}
-        for point_index, stack in enumerate(self.app.points):
-            if stack:
-                piece = stack[-1]  # Get the top piece from the stack
-                if piece.colour == self.app.current_player:
-                    valid_moves[point_index] = self.dfs_moves(point_index, piece)
+
+        # Check if there are pieces in the mid stack for the current player
+        mid_stack_index = 1 if self.app.current_player == 'black' else 0
+        if self.app.mid[mid_stack_index]:
+            for piece in self.app.mid[mid_stack_index]:
+                valid_moves_for_piece = self.generate_mid_stack_moves(piece)
+                if valid_moves_for_piece:
+                    valid_moves[-1] = valid_moves_for_piece  # Use -1 to indicate mid stack
+
+        # If no pieces in mid stack or no valid moves from mid stack, check the rest of the board
+        if not valid_moves:
+            for point_index, stack in enumerate(self.app.points):
+                if stack:
+                    piece = stack[-1]
+                    if piece.colour == self.app.current_player:
+                        valid_moves[point_index] = self.dfs_moves(point_index, piece)
+
         return valid_moves
-    
+
+    def generate_mid_stack_moves(self, piece):
+        valid_moves = []
+        current_point_index = self.app.find_piece_point_index(piece)
+        for dice_value in self.app.dice.get_current_face_values():
+            new_point_index = current_point_index - dice_value
+            if self.app.is_move_valid(piece, new_point_index):
+                valid_moves.append(new_point_index)
+        return valid_moves
+
     def dfs_moves(self, point_index: int, piece):
         valid_moves = []
         current_point_index = self.app.find_piece_point_index(piece)
-        
         for dice_value in self.app.dice.get_current_face_values():
-            # Calculate new point index for white pieces
             new_point_index = current_point_index - dice_value
-            
-            # Handle bearing off
-            if new_point_index < 0:
-                if self.app.can_bear_off(piece.colour):
-                    new_point_index = -1  # Use -1 to indicate bearing off
-
-            # Validate the move
+            if new_point_index < 0 and self.app.can_bear_off(piece.colour):
+                new_point_index = -1  # Bear-off
             if self.app.is_move_valid(piece, new_point_index):
                 valid_moves.append(new_point_index)
-
         return valid_moves
 
     def select_move(self):
         valid_moves = self.generate_moves()
-        
-        # Filter out points that do not have any valid moves
-        valid_moves = {point: moves for point, moves in valid_moves.items() if moves}
-
-        # Check if there are any points with valid moves
         if valid_moves:
             point_index, moves = choice(list(valid_moves.items()))
             move = choice(moves)
-            piece = self.app.points[point_index][-1]  # Get the top piece from the stack at point_index
+            if point_index == -1:  # Mid stack move
+                piece = self.app.mid[1 if self.app.current_player == 'black' else 0][-1]
+                print(f"Bot is moving a piece from the mid stack to point {move}")
+            else:
+                piece = self.app.points[point_index][-1]
+                print(f"Bot is moving a piece from point {point_index} to {move}")
             return piece, move
-
-        # Return None, None if there are no points with valid moves
+        print("No valid moves available for the bot.")
         return None, None
-
