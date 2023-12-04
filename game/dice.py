@@ -38,6 +38,7 @@ class Dice:
                 # To check whether the time passed since the roll exceeds that of the roll duration
                 # if True, finalize the dice roll
                 self.set_rolling(False)
+                self.finalize_roll()
             else:
                 # Change the dice faces at each update to create the rolling effect
                 self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]
