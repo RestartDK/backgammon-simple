@@ -79,9 +79,9 @@ class Piece:
         self.eaten = True
 
         if self.colour == "black":
-            self.rect.center = ((self.screen.get_width() // 2) - 0.08*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * self.image.get_height() // 2)
+            self.rect.center = ((self.screen.get_width() // 2) - 0.08*self.screen.get_width(), (self.screen.get_height() // 2)+3 * self.image.get_height() // 2)
         else:
-            self.rect.center = ((self.screen.get_width()  // 2)- 0.04*self.screen.get_width(), (self.screen.get_height() // 2)-0.01 * self.image.get_height() // 2) 
+            self.rect.center = ((self.screen.get_width()  // 2)- 0.04*self.screen.get_width(), (self.screen.get_height() // 2)+3 * self.image.get_height() // 2) 
         screen.blit(self.image, self.rect.center)
 
     def handle_event(self, event, app, dice: Dice):
