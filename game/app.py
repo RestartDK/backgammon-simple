@@ -51,7 +51,7 @@ class App:
 
 
         #define a white and black stack in the center (mid) - for the eaten pieces
-        self.mid = [[] for _ in range(2)]
+        self.mid = [[] for _ in range(2)] #stack index 0 represents white pieces
 
         # Calculate positions for each piece
         self.positions = list()
@@ -93,17 +93,23 @@ class App:
         # Remove piece from its current point, therefore the algorithm used is deletion
         # Time Complexity is O(n) for removing pieces in both the worst and average case, where n is the average number of pieces
         # Because if one element is removed from the middle of the list, all the elements to its right need to shift to fill the gap
-        for point in self.points:
-            if piece in point:
-                point.remove(piece)
-                break
+        if new_point_index == -1:
+            piece.eat(self.screen, len(self.mid[1])) #black 
+        elif new_point_index == 24:
+            piece.eat(self.screen, len(self.mid[0]))
 
-        # Add piece to the new point
-        if not piece.beared_off:
-            # Time Complexity is O(1) in both the worst and average case
-            # As adding an element to the end of the list has a constant time
-            self.points[new_point_index].append(piece)
-        
+        else:
+            for point in self.points:
+                if piece in point:
+                    point.remove(piece)
+                    break
+
+            # Add piece to the new point
+            if not piece.beared_off:
+                # Time Complexity is O(1) in both the worst and average case
+                # As adding an element to the end of the list has a constant time
+                self.points[new_point_index].append(piece)
+            
     def calculate_piece_position(self, point_id: int, stack_height: int):
         # Position for bearing off (you can adjust this based on your game design)
         if point_id == -1:
@@ -157,8 +163,12 @@ class App:
         for point_index, point in enumerate(self.points):
             if piece in point:
                 return point_index
+        # check if the piece is in mid stack:
+        if piece in self.mid[1]:
+            return -1 
+        elif piece in self.mid[0]:
+            return 24
         return -1
-        
 
     def restack_pieces_at_point(self, point_index):
         for stack_index, piece in enumerate(self.points[point_index]):
@@ -167,7 +177,7 @@ class App:
 
     def is_move_valid(self, piece: Piece, new_point_index: int) -> bool:
         # Check if the new point index is within board limits
-        if not (0 <= new_point_index < 24 or new_point_index == -1):  # -1 for bear-off
+        if not (0 <= new_point_index < 25 or new_point_index == -1):  # -1 for bear-off
             return False
 
         # Get the current point index of the piece
@@ -241,7 +251,7 @@ class App:
     """
     Eaten Logic
     """
-    def can_be_eaten(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
+    def can_be_moved(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
         correct_stack = False
         eat = False
 
@@ -254,7 +264,7 @@ class App:
             correct_stack = True
 
         if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
-            if eat:
+            if eat: #this block moves the piece that was eaten
                 mid_len = 0  # needed to calculate the position of the following pieces in eat()
                 mid_pos = 0  # stack index
                 if piece.colour == 'black':
@@ -264,7 +274,7 @@ class App:
                     mid_pos = 1  # stack index
                     mid_len = len(self.mid[1])
                 self.points[new_point_index][0].eat(self.screen, mid_len)  # moving the image
-                self.mid[mid_pos].append(self.points[new_point_index].pop())
+                self.mid[mid_pos].append(self.points[new_point_index].pop()) #moving (logically) to the middle
             return True
         else:
             return False
@@ -272,6 +282,26 @@ class App:
     '''
     Handling all movement and events in the game (including eaten functionality)
     '''
+    def eligable_to_move_from_middle(self, piece: Piece, new_point_index: int) -> bool:
+        for dice in self.dice.get_current_face_values():
+            # For black pieces, calculate the entering index from the bar
+            if piece.colour == 'black':
+                target_index = 24 - dice
+                if target_index < 0 or target_index >= 24:
+                    continue  # Skip invalid target indexes
+            # For white pieces, calculate the entering index from the bar
+            elif piece.colour == 'white':
+                target_index = dice - 1
+                if target_index < 0 or target_index >= 24:
+                    continue  # Skip invalid target indexes
+
+            # Check if the target index is not blocked
+            if not (len(self.points[target_index]) > 1 and self.points[target_index][0].colour != piece.colour):
+                return True
+
+        return False
+
+
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         # Time Complexity is O(n) both the worst and average case, where n is the average number of pieces
         # Because it has to check whether the movement is correct or not, otherwise moving it back to its original place
@@ -279,30 +309,39 @@ class App:
         # Tries moving a piece to a new position based on the value shown in the dice
         original_point_index = self.find_piece_point_index(piece)
         move_distance = self.calculate_move_distance(piece, new_point_index)
-        # Check for bearing off
-        if self.can_bear_off(self.current_player):
-            if self.is_valid_bear_off_move(original_point_index, move_distance):
-                # To deal non exact bearing moves
-                dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
-                if dice_value_to_remove is not None:
-                    # Bear off the piece
-                    self.bear_off_piece(piece)
-                    self.dice.current_face_values.remove(dice_value_to_remove)
-                    self.change_turn()
-                    return True
+        #This conditional allows you to only move pieces if there is nothing in the middle
+        #If there is a piece in the middle, and you are not moving it, the piece will not enter this if, and it will get reset to the original position
+        if (self.current_player == 'black' and len(self.mid[1]) == 0) or (self.current_player == 'white' and len(self.mid[0]) == 0) or (original_point_index == -1 or original_point_index == 24):
+            # Check for bearing off
+            if self.can_bear_off(self.current_player):
+                if self.is_valid_bear_off_move(original_point_index, move_distance):
+                    # To deal non exact bearing moves
+                    dice_value_to_remove = self.dice.get_closest_dice_value(move_distance)
+                    if dice_value_to_remove is not None:
+                        # Bear off the piece
+                        self.bear_off_piece(piece)
+                        self.dice.current_face_values.remove(dice_value_to_remove)
+                        self.change_turn()
+                        return True
 
-        
-        if self.can_be_eaten(piece, new_point_index, move_distance):
-            self.update_piece_position(piece, new_point_index)
-            self.dice.current_face_values.remove(move_distance)
-            self.change_turn()
-            return True
-        
-        
-        # Move the piece back to its original position if no other valid move
+            if self.can_be_moved(piece, new_point_index, move_distance) and self.eligable_to_move_from_middle(piece, new_point_index):
+                self.update_piece_position(piece, new_point_index)
+                if original_point_index == -1:
+                    self.mid[1].remove(piece)
+                elif original_point_index == 24: #this variable is important bc it lets us know if we are moving a piece from the middle or not
+                    self.mid[0].remove(piece)
+                self.dice.current_face_values.remove(move_distance)
+                self.change_turn()
+                return True
+            
+            if not self.eligable_to_move_from_middle(piece, new_point_index):
+                self.change_turn()
+
+        #Move the piece back to its original position if no other valid move 
         self.update_piece_position(piece, original_point_index)
         self.restack_pieces_at_point(original_point_index)
         return False
+            
             
     def handle_piece_movement(self, piece: Piece, new_point_index: int):
         # Handles the movement of a piece to a new point, updating its position 
@@ -330,25 +369,6 @@ class App:
         for stack_index, piece in enumerate(self.points[point_index]):
             x_base, y_base = self.calculate_piece_position(point_index, stack_index)
             piece.move((x_base, y_base), self.screen)
-    #when a piece is eaten, it goes to the middle stack, and when it
-    #becomes the other player's turn, the piece is "reset" to the first stack of that color
-
-    def reset_position(self, screen, piece):
-        #this function will only run if the stack is empty or the player's own color is contained in the stack
-        #(otherwise the game will crash due to logic throughout the code)
-        able_to_reset = False
-        if piece.colour == 'black' and (len(self.points[0]) == 0 or self.points[0][0].colour == 'black'):
-            x_original, y_original = self.calculate_piece_position(0, len(self.points[0])) 
-            piece.move((x_original, y_original), self.screen) #move piece in UI
-            self.points[0].append(piece) #append piece to the appropriate stack (backend)
-            able_to_reset = True
-
-        elif piece.colour == 'white' and (len(self.points[23]) == 0 or self.points[23][0].colour == 'white'): 
-            x_original, y_original = self.calculate_piece_position(23, len(self.points[23])) 
-            piece.move((x_original, y_original), self.screen) #move piece in UI
-            self.points[23].append(piece) #append piece to the appropriate stack (backend)
-            able_to_reset = True
-        return able_to_reset
 
     """
     Turn based and winning logic
@@ -359,25 +379,12 @@ class App:
             # Logic to end the current player's turn and switch to the other player
             self.roll_button.set_clicked(False)
             self.current_player = 'white' if self.current_player == 'black' else 'black'
-            if self.current_player == 'black':
-                mid_pos = 1
-            elif self.current_player == 'white':
-                mid_pos = 0
-            able_to_reset = True
-            while len(self.mid[mid_pos]) != 0 and able_to_reset:
-                piece_to_delete = self.mid[mid_pos].pop() #this takes care of the backend
-                able_to_reset = self.reset_position(self.screen, piece_to_delete) #this returns the ith element in the stack, 
-                #which will get blitted with reset_position() #this also tells us whether we can append the piece based on the logic conditions.
-                #above, we just popped the piece, without checking the conditions to do so, 
-                #so, if the condition is not met, we must reappend it. 
-                if able_to_reset == False:
-                    self.mid[mid_pos].append(piece_to_delete)
 
     def check_win_condition(self):
         if self.board.counter_white == 15:  # Assuming 15 pieces per player
             print("White wins!")
             self.running = False
-        elif self.board.counter_black == 15:
+        elif self.board.counter_black == 15: 
             print("Black wins!")
             self.running = False
     
