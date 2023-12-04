@@ -22,19 +22,19 @@ class StartPage:
         run = True
         while run:
             self.screen.fill((0, 0, 0))  # Clear the screen
-
-            # Display roll button
-            if not self.game_ready:
-                self.roll_button.render()
-                message = f"Player {self.current_player}'s turn to roll the dice"
-                self.display_message(message, (100, 100))
-
+            
             # Display start button if game is ready
             if self.game_ready:
                 self.start_button.render()
                 starting_player = 'Player 1' if self.player_rolls[0] > self.player_rolls[1] else 'Player 2'
                 starting_color = 'black' if starting_player == 'Player 1' else 'white'
                 self.display_message(f"{starting_player} starts the game with {starting_color} as color. Click 'Start' to begin.", (100, 150))
+
+            # Display roll button
+            if not self.game_ready:
+                self.roll_button.render()
+                message = f"Player {self.current_player}'s turn to roll the dice"
+                self.display_message(message, (100, 100))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -43,8 +43,8 @@ class StartPage:
                     sys.exit()
 
                 if not self.game_ready and event.type == pygame.MOUSEBUTTONDOWN and self.roll_button.button_rect.collidepoint(event.pos):
-                    self.dice.roll()
                     self.roll_button.set_clicked(True)
+                    self.dice.roll()
 
                 if self.game_ready and event.type == pygame.MOUSEBUTTONDOWN and self.start_button.button_rect.collidepoint(event.pos):
                     return starting_color
@@ -69,7 +69,7 @@ class StartPage:
                 self.display_message(f"Player 2 rolled: {self.player_rolls[1]}", (100, 250))
 
             # Render dice
-            if not self.game_ready:
+            if not self.game_ready and self.roll_button.clicked:
                 self.dice.render((self.screen.get_width() // 2 - 50, self.screen.get_height() // 2 + 50))
 
             pygame.display.update()
