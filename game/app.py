@@ -251,7 +251,7 @@ class App:
     """
     Eaten Logic
     """
-    def can_be_moved(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
+    def can_eat(self, piece: Piece, new_point_index: int, move_distance: int) -> bool:
         correct_stack = False
         eat = False
 
@@ -278,10 +278,7 @@ class App:
             return True
         else:
             return False
-
-    '''
-    Handling all movement and events in the game (including eaten functionality)
-    '''
+        
     def eligable_to_move_from_middle(self, piece: Piece, new_point_index: int) -> bool:
         for dice in self.dice.get_current_face_values():
             # For black pieces, calculate the entering index from the bar
@@ -301,6 +298,9 @@ class App:
 
         return False
 
+    '''
+    Handling all movement and events in the game
+    '''
 
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         # Time Complexity is O(n) both the worst and average case, where n is the average number of pieces
@@ -324,7 +324,7 @@ class App:
                         self.change_turn()
                         return True
 
-            if self.can_be_moved(piece, new_point_index, move_distance) and self.eligable_to_move_from_middle(piece, new_point_index):
+            if self.can_eat(piece, new_point_index, move_distance) and self.eligable_to_move_from_middle(piece, new_point_index):
                 self.update_piece_position(piece, new_point_index)
                 if original_point_index == -1:
                     self.mid[1].remove(piece)
@@ -364,11 +364,6 @@ class App:
             
         self.roll_button.handle_event(event)
         self.dice.handle_event(event)
-
-    def restack_pieces_at_point(self, point_index):
-        for stack_index, piece in enumerate(self.points[point_index]):
-            x_base, y_base = self.calculate_piece_position(point_index, stack_index)
-            piece.move((x_base, y_base), self.screen)
 
     """
     Turn based and winning logic
