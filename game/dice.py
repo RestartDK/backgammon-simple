@@ -2,9 +2,10 @@ import random
 import pygame
 
 class Dice:
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, screen: pygame.Surface, app):
         # Load images for the dice faces
         self.screen = screen
+        self.app = app
         self.generate() # Initalize and load dice face images
         self.rolling = False # Indicator of whether the dice is rolling or not
         self.roll_start_time = None 
@@ -38,6 +39,7 @@ class Dice:
                 # To check whether the time passed since the roll exceeds that of the roll duration
                 # if True, finalize the dice roll
                 self.set_rolling(False)
+                self.finalize_roll()
             else:
                 # Change the dice faces at each update to create the rolling effect
                 self.current_face_values = [random.randint(1, 6) for _ in range(self.show_dice)]
@@ -48,7 +50,7 @@ class Dice:
         # Set the final dice values after rolling
         self.current_face_values = [random.randint(1, 6) for _ in range(2)]
         
-        if self.current_face_values[0] == self.current_face_values[1] and game.app.game_started==True:
+        if self.current_face_values[0] == self.current_face_values[1] and self.app.game_started==True:
             self.current_face_values *= 2
             self.show_dice = 4
         else:

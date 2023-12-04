@@ -17,7 +17,7 @@ class App:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
         self.running = True
         self.board = BackgammonBoard(self.screen)
-        self.dice = Dice(self.screen)
+        self.dice = Dice(self.screen, self)
         self.current_player = 'black' 
         self.initalise_pieces()
         self.bot = Bot(self)
