@@ -1,5 +1,6 @@
 import time
 from game.backgammonboard import BackgammonBoard
+from game.start_page import StartPage
 from game.dice import Dice
 from game.piece import Piece
 from game.dice import Button
@@ -16,11 +17,20 @@ class App:
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
         self.running = True
         self.board = BackgammonBoard(self.screen)
-        self.dice = Dice(self.screen)
-        self.button = Button(self.screen, (self.board.box_width//2, self.board.height//2), self.dice)
+        self.dice = Dice(self.screen, self)
         self.current_player = 'black' 
         self.initalise_pieces()
         self.bot = Bot(self)
+
+        self.roll_button = Button(self.screen, (self.board.box_width // 2, self.board.height // 2), self.dice)
+        self.start_button = Button(self.screen, (self.screen_width // 2, self.screen_height // 2 + 100), self.dice)
+        self.font = pygame.font.SysFont(None, 55)
+
+        # Create an instance of StartPage
+        self.start_page = StartPage(self.screen, self.dice, self.roll_button, self.start_button, self.font)
+
+        self.game_started = False
+        self.running = True
 
     def initalise_pieces(self):
         # Remember in python lists start with 0 but backgammon board has 24 places
@@ -311,7 +321,7 @@ class App:
             if piece.handle_event(event, self, self.dice):
                 break
             
-        self.button.handle_event(event)
+        self.roll_button.handle_event(event)
         self.dice.handle_event(event)
 
     def restack_pieces_at_point(self, point_index):
@@ -345,7 +355,7 @@ class App:
         # Check to see if turn has ended
         if not self.dice.get_current_face_values():
             # Logic to end the current player's turn and switch to the other player
-            self.button.set_clicked(False)
+            self.roll_button.set_clicked(False)
             self.current_player = 'white' if self.current_player == 'black' else 'black'
             if self.current_player == 'black':
                 mid_pos = 1
@@ -377,9 +387,11 @@ class App:
         # Because it iterates through the pieces, and renders and updates each one
         # Render the board and pieces
         self.board.render()
-        self.button.render()
+               
+        if self.game_started:
+            self.roll_button.render()
         # Update and render dice only if button has been clicked
-        if self.button.clicked:
+        if self.roll_button.clicked:
             self.dice.update()
             # Adjust position based on number of dice shown
             if self.current_player == 'white' and self.dice.show_dice == 2:
@@ -449,7 +461,10 @@ class App:
     def start(self):
         # Initializes all the pygame modules
         pygame.init()
-        
+        starting_color = self.start_page.run()
+        self.current_player = starting_color
+        self.game_started = True
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
