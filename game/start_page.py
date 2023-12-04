@@ -59,8 +59,16 @@ class StartPage:
                     self.current_player = 2 if self.current_player == 1 else 1
                     self.roll_button.set_clicked(False)
 
+                    # Check if both players have rolled
                     if all(self.player_rolls):
-                        self.game_ready = True
+                        # Check if the players rolled the same number
+                        if self.player_rolls[0] == self.player_rolls[1]:
+                            # If so, reset the rolls and force a re-roll
+                            self.player_rolls = [None, None]
+                            self.game_ready = False
+                            self.display_message("Both players rolled the same number. Click 'Roll' to re-roll.", (100, 150))
+                        else:
+                            self.game_ready = True
 
             # Display the dice values
             if self.player_rolls[0] != 0:
