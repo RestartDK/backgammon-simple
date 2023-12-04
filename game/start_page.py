@@ -43,8 +43,8 @@ class StartPage:
                     sys.exit()
 
                 if not self.game_ready and event.type == pygame.MOUSEBUTTONDOWN and self.roll_button.button_rect.collidepoint(event.pos):
-                    self.dice.roll()
                     self.roll_button.set_clicked(True)
+                    self.dice.roll()
 
                 if self.game_ready and event.type == pygame.MOUSEBUTTONDOWN and self.start_button.button_rect.collidepoint(event.pos):
                     return starting_color
@@ -69,7 +69,7 @@ class StartPage:
                 self.display_message(f"Player 2 rolled: {self.player_rolls[1]}", (100, 250))
 
             # Render dice
-            if not self.game_ready:
+            if not self.game_ready and self.roll_button.clicked:
                 self.dice.render((self.screen.get_width() // 2 - 50, self.screen.get_height() // 2 + 50))
 
             pygame.display.update()
