@@ -270,7 +270,7 @@ class App:
     '''
     Handling all movement and events in the game (including eaten functionality)
     '''
-    def eligable_to_move_from_middle(self, piece: Piece, new_point_index: int):
+    def eligable_to_move_from_middle(self, piece: Piece, new_point_index: int) -> bool:
         for dice in self.dice.get_current_face_values():
             if not ((len(self.points[dice-1])) > 1 or (self.points[dice-1][0].colour != piece.colour)): #not blocked case 
                 return True
@@ -307,8 +307,8 @@ class App:
                 self.dice.current_face_values.remove(move_distance)
                 self.change_turn()
                 return True
-              
-            elif not self.eligable_to_move_from_middle(piece, new_point_index):
+            
+            if not self.eligable_to_move_from_middle(piece, new_point_index):
                 print("Turn has been changed.")
                 self.change_turn()
 
