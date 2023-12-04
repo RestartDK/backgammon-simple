@@ -1,5 +1,6 @@
 import time
 from game.backgammonboard import BackgammonBoard
+from game.start_page import StartPage
 from game.dice import Dice
 from game.piece import Piece
 from game.dice import Button
@@ -320,7 +321,7 @@ class App:
             if piece.handle_event(event, self, self.dice):
                 break
             
-        self.button.handle_event(event)
+        self.roll_button.handle_event(event)
         self.dice.handle_event(event)
 
     def restack_pieces_at_point(self, point_index):
@@ -386,7 +387,9 @@ class App:
         # Because it iterates through the pieces, and renders and updates each one
         # Render the board and pieces
         self.board.render()
-        self.button.render()
+               
+        if self.game_started:
+            self.roll_button.render()
         # Update and render dice only if button has been clicked
         if self.roll_button.clicked:
             self.dice.update()
@@ -458,7 +461,10 @@ class App:
     def start(self):
         # Initializes all the pygame modules
         pygame.init()
-        
+        starting_color = self.start_page.run()
+        self.current_player = starting_color
+        self.game_started = True
+
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
