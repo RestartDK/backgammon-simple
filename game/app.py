@@ -284,9 +284,23 @@ class App:
     '''
     def eligable_to_move_from_middle(self, piece: Piece, new_point_index: int) -> bool:
         for dice in self.dice.get_current_face_values():
-            if not ((len(self.points[dice-1])) > 1 or (self.points[dice-1][0].colour != piece.colour)): #not blocked case 
+            # For black pieces, calculate the entering index from the bar
+            if piece.colour == 'black':
+                target_index = 24 - dice
+                if target_index < 0 or target_index >= 24:
+                    continue  # Skip invalid target indexes
+            # For white pieces, calculate the entering index from the bar
+            elif piece.colour == 'white':
+                target_index = dice - 1
+                if target_index < 0 or target_index >= 24:
+                    continue  # Skip invalid target indexes
+
+            # Check if the target index is not blocked
+            if not (len(self.points[target_index]) > 1 and self.points[target_index][0].colour != piece.colour):
                 return True
+
         return False
+
 
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         # Time Complexity is O(n) both the worst and average case, where n is the average number of pieces
