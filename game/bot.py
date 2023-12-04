@@ -35,7 +35,6 @@ class Bot:
 
     def select_move(self):
         valid_moves = self.generate_moves()
-        print(f'valid_moves: {valid_moves}')
         
         # Filter out points that do not have any valid moves
         valid_moves = {point: moves for point, moves in valid_moves.items() if moves}
@@ -45,10 +44,8 @@ class Bot:
             point_index, moves = choice(list(valid_moves.items()))
             move = choice(moves)
             piece = self.app.points[point_index][-1]  # Get the top piece from the stack at point_index
-            print(f'Moving piece from point {point_index} to {move}')
             return piece, move
 
         # Return None, None if there are no points with valid moves
-        print("No valid move available. Breaking out of loop.")
         return None, None
 
