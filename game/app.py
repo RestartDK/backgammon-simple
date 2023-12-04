@@ -165,7 +165,7 @@ class App:
 
     def is_move_valid(self, piece: Piece, new_point_index: int) -> bool:
         # Check if the new point index is within board limits
-        if not (0 <= new_point_index < 24 or new_point_index == -1):  # -1 for bear-off
+        if not (0 <= new_point_index < 25 or new_point_index == -1):  # -1 for bear-off
             return False
 
         # Get the current point index of the piece
@@ -252,7 +252,7 @@ class App:
             correct_stack = True
 
         if correct_stack and move_distance in self.dice.get_current_face_values() and piece.colour == self.current_player:
-            if eat:
+            if eat: #this block moves the piece that was eaten
                 mid_len = 0  # needed to calculate the position of the following pieces in eat()
                 mid_pos = 0  # stack index
                 if piece.colour == 'black':
@@ -262,7 +262,7 @@ class App:
                     mid_pos = 1  # stack index
                     mid_len = len(self.mid[1])
                 self.points[new_point_index][0].eat(self.screen, mid_len)  # moving the image
-                self.mid[mid_pos].append(self.points[new_point_index].pop())
+                self.mid[mid_pos].append(self.points[new_point_index].pop()) #moving (logically) to the middle
             return True
         else:
             return False
@@ -270,6 +270,12 @@ class App:
     '''
     Handling all movement and events in the game (including eaten functionality)
     '''
+    def eligable_to_move_from_middle(self, piece: Piece, new_point_index: int):
+        for dice in self.dice.get_current_face_values():
+            if not ((len(self.points[dice-1])) > 1 or (self.points[dice-1][0].colour != piece.colour)): #not blocked case 
+                return True
+        return False
+
     def attempt_piece_move(self, piece: Piece, new_point_index: int) -> bool:
         # Time Complexity is O(n) both the worst and average case, where n is the average number of pieces
         # Because it has to check whether the movement is correct or not, otherwise moving it back to its original place
@@ -279,7 +285,7 @@ class App:
         move_distance = self.calculate_move_distance(piece, new_point_index)
         #This conditional allows you to only move pieces if there is nothing in the middle
         #If there is a piece in the middle, and you are not moving it, the piece will not enter this if, and it will get reset to the original position
-        if (self.current_player == 'black' and len(self.mid[1]) == 0) or (self.current_player == 'white' and len(self.mid[0]) == 0) or original_point_index == (-1 or 24):
+        if (self.current_player == 'black' and len(self.mid[1]) == 0) or (self.current_player == 'white' and len(self.mid[0]) == 0) or (original_point_index == -1 or original_point_index == 24):
             # Check for bearing off
             if self.can_bear_off(self.current_player):
                 if self.is_valid_bear_off_move(original_point_index, move_distance):
@@ -292,22 +298,25 @@ class App:
                         self.change_turn()
                         return True
 
-            if self.can_be_moved(piece, new_point_index, move_distance):
+            if self.can_be_moved(piece, new_point_index, move_distance) and self.eligable_to_move_from_middle(piece, new_point_index):
                 self.update_piece_position(piece, new_point_index)
                 if original_point_index == -1:
                     self.mid[1].remove(piece)
-                elif original_point_index == 24:
+                elif original_point_index == 24: #this variable is important bc it lets us know if we are moving a piece from the middle or not
                     self.mid[0].remove(piece)
                 self.dice.current_face_values.remove(move_distance)
                 self.change_turn()
                 return True
-        print(len(self.mid[1]))
-        
-        
-        # Move the piece back to its original position if no other valid move
+              
+            elif not self.eligable_to_move_from_middle(piece, new_point_index):
+                print("Turn has been changed.")
+                self.change_turn()
+
+        #Move the piece back to its original position if no other valid move 
         self.update_piece_position(piece, original_point_index)
         self.restack_pieces_at_point(original_point_index)
         return False
+            
             
     def handle_piece_movement(self, piece: Piece, new_point_index: int):
         # Handles the movement of a piece to a new point, updating its position 
@@ -335,25 +344,6 @@ class App:
         for stack_index, piece in enumerate(self.points[point_index]):
             x_base, y_base = self.calculate_piece_position(point_index, stack_index)
             piece.move((x_base, y_base), self.screen)
-    #when a piece is eaten, it goes to the middle stack, and when it
-    #becomes the other player's turn, the piece is "reset" to the first stack of that color
-
-    def reset_position(self, screen, piece):
-        #this function will only run if the stack is empty or the player's own color is contained in the stack
-        #(otherwise the game will crash due to logic throughout the code)
-        able_to_reset = False
-        if piece.colour == 'black' and (len(self.points[0]) == 0 or self.points[0][0].colour == 'black'):
-            x_original, y_original = self.calculate_piece_position(0, len(self.points[0])) 
-            piece.move((x_original, y_original), self.screen) #move piece in UI
-            self.points[0].append(piece) #append piece to the appropriate stack (backend)
-            able_to_reset = True
-
-        elif piece.colour == 'white' and (len(self.points[23]) == 0 or self.points[23][0].colour == 'white'): 
-            x_original, y_original = self.calculate_piece_position(23, len(self.points[23])) 
-            piece.move((x_original, y_original), self.screen) #move piece in UI
-            self.points[23].append(piece) #append piece to the appropriate stack (backend)
-            able_to_reset = True
-        return able_to_reset
 
     """
     Turn based and winning logic
@@ -364,25 +354,12 @@ class App:
             # Logic to end the current player's turn and switch to the other player
             self.button.set_clicked(False)
             self.current_player = 'white' if self.current_player == 'black' else 'black'
-            # if self.current_player == 'black':
-            #     mid_pos = 1
-            # elif self.current_player == 'white':
-            #     mid_pos = 0
-            # able_to_reset = True
-            # while len(self.mid[mid_pos]) != 0 and able_to_reset:
-            #     piece_to_delete = self.mid[mid_pos].pop() #this takes care of the backend
-            #     able_to_reset = self.reset_position(self.screen, piece_to_delete) #this returns the ith element in the stack, 
-            #     #which will get blitted with reset_position() #this also tells us whether we can append the piece based on the logic conditions.
-            #     #above, we just popped the piece, without checking the conditions to do so, 
-            #     #so, if the condition is not met, we must reappend it. 
-            #     if able_to_reset == False:
-            #         self.mid[mid_pos].append(piece_to_delete)
 
     def check_win_condition(self):
         if self.board.counter_white == 15:  # Assuming 15 pieces per player
             print("White wins!")
             self.running = False
-        elif self.board.counter_black == 15:
+        elif self.board.counter_black == 15: 
             print("Black wins!")
             self.running = False
     
