@@ -22,8 +22,8 @@ class App:
         self.initalise_pieces()
         self.bot = Bot(self)
 
-        self.roll_button = Button(self.screen, (self.board.box_width // 2, self.board.height // 2), self.dice)
-        self.start_button = Button(self.screen, (self.screen_width // 2, self.screen_height // 2 + 100), self.dice)
+        self.roll_button = Button(self.screen, (self.board.box_width // 2, self.board.height // 2), self.dice, "assets/images/roll-button.png")
+        self.start_button = Button(self.screen, (self.screen_width // 2, self.screen_height // 2 + 100), self.dice, "assets/images/start-button.png")
         self.font = pygame.font.SysFont(None, 55)
 
         # Create an instance of StartPage
@@ -387,7 +387,7 @@ class App:
         # Because it iterates through the pieces, and renders and updates each one
         # Render the board and pieces
         self.board.render()
-               
+        
         if self.game_started:
             self.roll_button.render()
         # Update and render dice only if button has been clicked
