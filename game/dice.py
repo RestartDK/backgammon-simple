@@ -50,7 +50,7 @@ class Dice:
         # Set the final dice values after rolling
         self.current_face_values = [random.randint(1, 6) for _ in range(2)]
         
-        if self.current_face_values[0] == self.current_face_values[1] and self.app.game_started==True:
+        if self.current_face_values[0] == self.current_face_values[1] and self.app.game_started is True:
             self.current_face_values *= 2
             self.show_dice = 4
         else:
