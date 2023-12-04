@@ -39,6 +39,7 @@ class App:
         # Because the initial number of pieces and their position is always constant
         self.points = [[] for _ in range(24)]
 
+        
         self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
         self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
@@ -47,6 +48,7 @@ class App:
         self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
         self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
         self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+
 
         #define a white and black stack in the center (mid) - for the eaten pieces
         self.mid = [[] for _ in range(2)]
@@ -425,7 +427,14 @@ class App:
     """
     Bot Logic
     """
-    def execute_bot_move(self):
+    def execute_bot_move(self):       
+        # Automatically click button dice roll at the start of the bot's turn
+        self.roll_button.clicked = True
+        self.dice.roll()
+        while self.dice.rolling:
+            self.dice.update()
+            self.render_all_assets()  # Render to show dice rolling animation
+            
         while self.dice.get_current_face_values():
             piece, new_point_index = self.bot.select_move()
 
@@ -459,7 +468,6 @@ class App:
     Game logic loop
     """
     def start(self):
-        # Initializes all the pygame modules
         pygame.init()
         starting_color = self.start_page.run()
         self.current_player = starting_color
@@ -469,15 +477,17 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-                    
+
                 self.handle_all_events(event)
 
-            if self.current_player == 'white':  # Replace 'bot_color' with the bot's color
+            # Render all the assets in the game
+            self.render_all_assets()
+
+            # Check if the game has started and it's the bot's turn
+            if self.game_started and self.current_player == 'white':
                 self.execute_bot_move()
 
-            # Rentder all the assets in the game
-            self.render_all_assets()
+            # Check winning condition
             self.check_win_condition()
 
-        # Quit Pygame when the main loop ends
         pygame.quit()
