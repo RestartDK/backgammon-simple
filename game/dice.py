@@ -103,11 +103,12 @@ class Dice:
     
 
 class Button:
-    def __init__(self, screen: pygame.Surface, position: tuple, dice: Dice):
+    def __init__(self, screen: pygame.Surface, position: tuple, dice: Dice, image: str):
         # Intializes the screen, position, dice and sets clicks to False
         self.screen = screen
         self.position = position
         self.dice = dice
+        self.image = image
         self.clicked = False
         self.generate_button() 
         self.button_rect = self.image.get_rect(center=self.position)
@@ -116,7 +117,7 @@ class Button:
         # Loadng and scaling of the image of the button
         # Time Complexity is O(1), for both the worst and average case
         # As loading and scaling are constant and do not depend on the size of the output
-        self.image = pygame.image.load("assets/images/roll-button.png")
+        self.image = pygame.image.load(self.image)
         self.image = pygame.transform.smoothscale(
             self.image, (self.screen.get_width()//4, self.screen.get_height()//10)
         )
