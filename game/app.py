@@ -40,14 +40,14 @@ class App:
         self.points = [[] for _ in range(24)]
 
         
-        self.points[4] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[6] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[7] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[8] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[9] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[10] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
-        self.points[11] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(1)]
+        self.points[0] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
+        self.points[5] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[7] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
+        self.points[11] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[23] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(2)]
+        self.points[18] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
+        self.points[16] = [Piece("black", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(3)]
+        self.points[12] = [Piece("white", self.screen, self.board.point_width, self.board.triangle_height) for _ in range(5)]
 
 
         #define a white and black stack in the center (mid) - for the eaten pieces
