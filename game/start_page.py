@@ -22,19 +22,19 @@ class StartPage:
         run = True
         while run:
             self.screen.fill((0, 0, 0))  # Clear the screen
-
-            # Display roll button
-            if not self.game_ready:
-                self.roll_button.render()
-                message = f"Player {self.current_player}'s turn to roll the dice"
-                self.display_message(message, (100, 100))
-
+            
             # Display start button if game is ready
             if self.game_ready:
                 self.start_button.render()
                 starting_player = 'Player 1' if self.player_rolls[0] > self.player_rolls[1] else 'Player 2'
                 starting_color = 'black' if starting_player == 'Player 1' else 'white'
                 self.display_message(f"{starting_player} starts the game with {starting_color} as color. Click 'Start' to begin.", (100, 150))
+
+            # Display roll button
+            if not self.game_ready:
+                self.roll_button.render()
+                message = f"Player {self.current_player}'s turn to roll the dice"
+                self.display_message(message, (100, 100))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
