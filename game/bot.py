@@ -47,15 +47,24 @@ class Bot:
 
     def select_move(self):
         valid_moves = self.generate_moves()
-        if valid_moves:
-            point_index, moves = choice(list(valid_moves.items()))
-            move = choice(moves)
-            if point_index == -1:  # Mid stack move
-                piece = self.app.mid[1 if self.app.current_player == 'black' else 0][-1]
-                print(f"Bot is moving a piece from the mid stack to point {move}")
-            else:
-                piece = self.app.points[point_index][-1]
-                print(f"Bot is moving a piece from point {point_index} to {move}")
-            return piece, move
-        print("No valid moves available for the bot.")
-        return None, None
+        
+        # Ensure valid_moves is not empty
+        if not valid_moves:
+            return None, None
+
+        # Choose a point index with at least one valid move
+        valid_point_indices = [point for point, moves in valid_moves.items() if moves]
+        if not valid_point_indices:
+            return None, None
+
+        point_index = choice(valid_point_indices)
+        moves = valid_moves[point_index]
+
+        # Choose a move from the selected point index
+        move = choice(moves)
+        if point_index == -1:  # Mid stack move
+            piece = self.app.mid[1 if self.app.current_player == 'black' else 0][-1]
+        else:
+            piece = self.app.points[point_index][-1]
+
+        return piece, move
